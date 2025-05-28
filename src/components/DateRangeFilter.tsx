@@ -19,23 +19,35 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
 }) => {
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
-  const [selectingFrom, setSelectingFrom] = useState(true);
+  const [fromTime, setFromTime] = useState<string>('00:00:00');
+  const [toTime, setToTime] = useState<string>('23:59:59');
 
   const handleDateSelect = (date: Date | undefined) => {
-    if (selectingFrom) {
+    if (!fromDate || (fromDate && toDate)) {
+      // Start new selection
       setFromDate(date);
-      setSelectingFrom(false);
+      setToDate(undefined);
       if (onDateRangeChange) {
-        onDateRangeChange(date, toDate);
+        onDateRangeChange(date, undefined);
       }
-    } else {
-      setToDate(date);
-      setSelectingFrom(true);
-      if (onDateRangeChange) {
-        onDateRangeChange(fromDate, date);
+    } else if (fromDate && !toDate) {
+      // Complete the range
+      if (date && date < fromDate) {
+        // If selected date is before start date, swap them
+        setFromDate(date);
+        setToDate(fromDate);
+        if (onDateRangeChange) {
+          onDateRangeChange(date, fromDate);
+        }
+      } else {
+        setToDate(date);
+        if (onDateRangeChange) {
+          onDateRangeChange(fromDate, date);
+        }
       }
+      
       // Auto-apply when both dates are selected
-      if (fromDate && date && onFilterApply) {
+      if (date && onFilterApply) {
         setTimeout(() => {
           onFilterApply();
         }, 100);
@@ -46,13 +58,27 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
   const clearFilter = () => {
     setFromDate(undefined);
     setToDate(undefined);
-    setSelectingFrom(true);
+    setFromTime('00:00:00');
+    setToTime('23:59:59');
     if (onDateRangeChange) {
       onDateRangeChange(undefined, undefined);
     }
     if (onFilterApply) {
       onFilterApply();
     }
+  };
+
+  const isDateInRange = (date: Date) => {
+    if (!fromDate || !toDate) return false;
+    return date >= fromDate && date <= toDate;
+  };
+
+  const isDateRangeStart = (date: Date) => {
+    return fromDate && date.getTime() === fromDate.getTime();
+  };
+
+  const isDateRangeEnd = (date: Date) => {
+    return toDate && date.getTime() === toDate.getTime();
   };
 
   return (
@@ -67,10 +93,8 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
             size="sm"
             className={cn(
               "w-full justify-start text-left font-normal text-xs h-8",
-              !fromDate && "text-muted-foreground",
-              selectingFrom && "ring-2 ring-[#FF732D]"
+              !fromDate && "text-muted-foreground"
             )}
-            onClick={() => setSelectingFrom(true)}
           >
             {fromDate ? fromDate.toLocaleDateString() : "Select date"}
           </Button>
@@ -82,10 +106,8 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
             size="sm"
             className={cn(
               "w-full justify-start text-left font-normal text-xs h-8",
-              !toDate && "text-muted-foreground",
-              !selectingFrom && "ring-2 ring-[#FF732D]"
+              !toDate && "text-muted-foreground"
             )}
-            onClick={() => setSelectingFrom(false)}
           >
             {toDate ? toDate.toLocaleDateString() : "Select date"}
           </Button>
@@ -94,32 +116,46 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
 
       <Calendar
         mode="single"
-        selected={selectingFrom ? fromDate : toDate}
+        selected={fromDate}
         onSelect={handleDateSelect}
         className={cn("p-3 pointer-events-auto border rounded-md")}
         initialFocus
+        modifiers={{
+          range_start: fromDate ? [fromDate] : [],
+          range_end: toDate ? [toDate] : [],
+          range_middle: fromDate && toDate ? (date: Date) => {
+            return date > fromDate && date < toDate;
+          } : () => false,
+        }}
+        modifiersClassNames={{
+          range_start: "bg-[#FF732D] text-white rounded-l-md hover:bg-[#FF732D] hover:text-white",
+          range_end: "bg-[#FF732D] text-white rounded-r-md hover:bg-[#FF732D] hover:text-white",
+          range_middle: "bg-[#FF732D]/20 text-[#FF732D] hover:bg-[#FF732D]/30",
+        }}
       />
 
-      {includeTime && (fromDate || toDate) && (
+      {includeTime && (
         <div className="flex space-x-2 mt-4">
-          {fromDate && (
-            <div className="flex-1">
-              <label className="block text-xs text-gray-600 mb-1">From Time</label>
-              <input
-                type="time"
-                className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-[#FF732D] focus:border-[#FF732D]"
-              />
-            </div>
-          )}
-          {toDate && (
-            <div className="flex-1">
-              <label className="block text-xs text-gray-600 mb-1">To Time</label>
-              <input
-                type="time"
-                className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-[#FF732D] focus:border-[#FF732D]"
-              />
-            </div>
-          )}
+          <div className="flex-1">
+            <label className="block text-xs text-gray-600 mb-1">From Time</label>
+            <input
+              type="time"
+              step="1"
+              value={fromTime}
+              onChange={(e) => setFromTime(e.target.value)}
+              className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-[#FF732D] focus:border-[#FF732D]"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="block text-xs text-gray-600 mb-1">To Time</label>
+            <input
+              type="time"
+              step="1"
+              value={toTime}
+              onChange={(e) => setToTime(e.target.value)}
+              className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-[#FF732D] focus:border-[#FF732D]"
+            />
+          </div>
         </div>
       )}
 
