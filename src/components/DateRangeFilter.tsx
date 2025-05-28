@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface DateRangeFilterProps {
-  label: string;
+  label?: string;
   includeTime?: boolean;
   onFilterApply?: () => void;
   onDateRangeChange?: (from: Date | undefined, to: Date | undefined) => void;
@@ -57,7 +57,7 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
 
   return (
     <div className="p-4">
-      <label className="block text-xs font-medium text-gray-700 mb-4">{label}</label>
+      {label && <label className="block text-xs font-medium text-gray-700 mb-4">{label}</label>}
       
       <div className="flex space-x-2 mb-4">
         <div className="flex-1">
