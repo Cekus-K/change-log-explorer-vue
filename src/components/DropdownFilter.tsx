@@ -32,9 +32,9 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
       <SelectTrigger className="sr-only">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent className="min-w-[180px] p-0 border-0 shadow-md">
+      <SelectContent className="min-w-[180px]">
         {options.map((option) => (
-          <SelectItem key={option.value} value={option.value} className="first:rounded-t-md last:rounded-b-md">
+          <SelectItem key={option.value} value={option.value}>
             {option.label}
           </SelectItem>
         ))}
