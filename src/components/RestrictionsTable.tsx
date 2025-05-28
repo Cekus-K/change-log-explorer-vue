@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -141,134 +140,164 @@ const RestrictionsTable = () => {
     }
   };
 
+  const DateFilter = () => (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700">Filter by date</label>
+      <input
+        type="date"
+        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF732D] focus:border-[#FF732D]"
+      />
+    </div>
+  );
+
+  const DateTimeFilter = () => (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700">Filter by date & time</label>
+      <input
+        type="datetime-local"
+        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF732D] focus:border-[#FF732D]"
+      />
+    </div>
+  );
+
+  const UserFilter = () => (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700">Filter by user</label>
+      <Select>
+        <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D]">
+          <SelectValue placeholder="Select users" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="prorms">proRMS</SelectItem>
+          <SelectItem value="jan">Jan Kowalski</SelectItem>
+          <SelectItem value="adam">Adam Nowak</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
+  const ActionFilter = () => (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700">Filter by action</label>
+      <Select>
+        <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D]">
+          <SelectValue placeholder="Select actions" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="recommended">RECOMMENDED</SelectItem>
+          <SelectItem value="overridden">OVERRIDDEN</SelectItem>
+          <SelectItem value="accepted">ACCEPTED</SelectItem>
+          <SelectItem value="rejected">REJECTED</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
+  const RMLFilter = () => (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700">Filter by RML</label>
+      <Select>
+        <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D]">
+          <SelectValue placeholder="Select RML" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="a">A</SelectItem>
+          <SelectItem value="b">B</SelectItem>
+          <SelectItem value="c">C</SelectItem>
+          <SelectItem value="all">ALL</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
+  const GroupTypeFilter = () => (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700">Filter by group type</label>
+      <Select>
+        <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D]">
+          <SelectValue placeholder="Select type" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="std">STD</SelectItem>
+          <SelectItem value="dlx">DLX</SelectItem>
+          <SelectItem value="su">SU</SelectItem>
+          <SelectItem value="all">ALL</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
   return (
     <div className="space-y-4">
-      {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-4 bg-gray-50 rounded-lg">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Reservation Date</label>
-          <input
-            type="date"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF732D] focus:border-[#FF732D]"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Created Date</label>
-          <input
-            type="datetime-local"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF732D] focus:border-[#FF732D]"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Created By</label>
-          <Select>
-            <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D]">
-              <SelectValue placeholder="Select users" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="prorms">proRMS</SelectItem>
-              <SelectItem value="jan">Jan Kowalski</SelectItem>
-              <SelectItem value="adam">Adam Nowak</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Action</label>
-          <Select>
-            <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D]">
-              <SelectValue placeholder="Select actions" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="recommended">RECOMMENDED</SelectItem>
-              <SelectItem value="overridden">OVERRIDDEN</SelectItem>
-              <SelectItem value="accepted">ACCEPTED</SelectItem>
-              <SelectItem value="rejected">REJECTED</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">RML</label>
-          <Select>
-            <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D]">
-              <SelectValue placeholder="Select RML" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="a">A</SelectItem>
-              <SelectItem value="b">B</SelectItem>
-              <SelectItem value="c">C</SelectItem>
-              <SelectItem value="all">ALL</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Group Type</label>
-          <Select>
-            <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D]">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="std">STD</SelectItem>
-              <SelectItem value="dlx">DLX</SelectItem>
-              <SelectItem value="su">SU</SelectItem>
-              <SelectItem value="all">ALL</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="col-span-full md:col-span-2 lg:col-span-4 xl:col-span-3 flex items-end">
-          <Button className="bg-[#FF732D] hover:bg-[#E5652A] text-white mr-2">
-            Apply Filters
-          </Button>
-          <Button variant="outline" className="border-[#FF732D] text-[#FF732D] hover:bg-[#FF732D] hover:text-white">
-            Clear
-          </Button>
-        </div>
-      </div>
-
       {/* Table */}
       <div className="border rounded-lg overflow-hidden">
         <Table>
-          <TableHeader className="bg-[#FF732D]">
+          <TableHeader className="bg-gray-100">
             <TableRow>
               <FilterHeader 
                 title="Res. Date" 
                 sortable 
+                filterable
                 onSort={() => handleSort('reservationDate')}
-                className="text-white hover:text-gray-200"
+                sortDirection={sortConfig?.key === 'reservationDate' ? sortConfig.direction : null}
+                className="text-gray-700 font-medium"
+                filterContent={<DateFilter />}
               />
               <FilterHeader 
                 title="Created date" 
                 sortable 
+                filterable
                 onSort={() => handleSort('createdDate')}
-                className="text-white hover:text-gray-200"
+                sortDirection={sortConfig?.key === 'createdDate' ? sortConfig.direction : null}
+                className="text-gray-700 font-medium"
+                filterContent={<DateTimeFilter />}
               />
               <FilterHeader 
                 title="Created By" 
                 sortable 
+                filterable
                 onSort={() => handleSort('createdBy')}
-                className="text-white hover:text-gray-200"
+                sortDirection={sortConfig?.key === 'createdBy' ? sortConfig.direction : null}
+                className="text-gray-700 font-medium"
+                filterContent={<UserFilter />}
               />
               <FilterHeader 
                 title="Action" 
                 sortable 
+                filterable
                 onSort={() => handleSort('action')}
-                className="text-white hover:text-gray-200"
+                sortDirection={sortConfig?.key === 'action' ? sortConfig.direction : null}
+                className="text-gray-700 font-medium"
+                filterContent={<ActionFilter />}
               />
-              <TableHead className="text-white">RECO</TableHead>
-              <TableHead className="text-white">RML</TableHead>
+              <TableHead className="text-gray-700 font-medium">RECO</TableHead>
+              <FilterHeader 
+                title="RML" 
+                sortable 
+                filterable
+                onSort={() => handleSort('rml')}
+                sortDirection={sortConfig?.key === 'rml' ? sortConfig.direction : null}
+                className="text-gray-700 font-medium"
+                filterContent={<RMLFilter />}
+              />
               <FilterHeader 
                 title="Group Type" 
                 sortable 
+                filterable
                 onSort={() => handleSort('groupType')}
-                className="text-white hover:text-gray-200"
+                sortDirection={sortConfig?.key === 'groupType' ? sortConfig.direction : null}
+                className="text-gray-700 font-medium"
+                filterContent={<GroupTypeFilter />}
               />
               <FilterHeader 
                 title="Room Type" 
                 sortable 
                 onSort={() => handleSort('roomType')}
-                className="text-white hover:text-gray-200"
+                sortDirection={sortConfig?.key === 'roomType' ? sortConfig.direction : null}
+                className="text-gray-700 font-medium"
               />
-              <TableHead className="text-white">proRMS RECO</TableHead>
-              <TableHead className="text-white">Description</TableHead>
+              <TableHead className="text-gray-700 font-medium">proRMS RECO</TableHead>
+              <TableHead className="text-gray-700 font-medium">Description</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
