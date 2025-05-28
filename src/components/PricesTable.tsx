@@ -76,6 +76,107 @@ const mockPricesData: PriceEntry[] = [
     reco: 'LV4-400',
     systemReco: 'LV4-400',
     description: ''
+  },
+  // Additional sample data
+  {
+    id: '7',
+    reservationDate: '2025-01-02',
+    createdDate: '14:30:00',
+    createdBy: 'Maria Garcia',
+    action: 'ACCEPTED',
+    reco: 'LV3-300',
+    systemReco: 'LV3-300',
+    description: 'Rate adjusted for group booking'
+  },
+  {
+    id: '8',
+    reservationDate: '2025-01-02',
+    createdDate: '13:45:00',
+    createdBy: 'proRMS',
+    action: 'RECOMMENDED',
+    reco: 'LV2-200',
+    systemReco: 'LV2-200',
+    description: ''
+  },
+  {
+    id: '9',
+    reservationDate: '2025-01-03',
+    createdDate: '16:20:00',
+    createdBy: 'John Smith',
+    action: 'OVERRIDDEN',
+    reco: 'LV5-500',
+    systemReco: 'LV3-300',
+    description: 'Manual override for VIP guest'
+  },
+  {
+    id: '10',
+    reservationDate: '2025-01-03',
+    createdDate: '15:15:00',
+    createdBy: 'Anna Mueller',
+    action: 'REJECTED',
+    reco: 'LV1-100',
+    systemReco: 'LV2-200',
+    description: 'Rate too low for peak period'
+  },
+  {
+    id: '11',
+    reservationDate: '2025-01-04',
+    createdDate: '11:30:00',
+    createdBy: 'proRMS',
+    action: 'RECOMMENDED',
+    reco: 'LV4-400',
+    systemReco: 'LV4-400',
+    description: ''
+  },
+  {
+    id: '12',
+    reservationDate: '2025-01-04',
+    createdDate: '10:45:00',
+    createdBy: 'Lisa Chen',
+    action: 'ACCEPTED',
+    reco: 'LV6-600',
+    systemReco: 'LV5-500',
+    description: 'Corporate rate approved'
+  },
+  {
+    id: '13',
+    reservationDate: '2025-01-05',
+    createdDate: '09:20:00',
+    createdBy: 'Robert Brown',
+    action: 'OVERRIDDEN',
+    reco: 'LV3-300',
+    systemReco: 'LV4-400',
+    description: 'Promotional rate applied'
+  },
+  {
+    id: '14',
+    reservationDate: '2025-01-05',
+    createdDate: '08:55:00',
+    createdBy: 'proRMS',
+    action: 'RECOMMENDED',
+    reco: 'LV5-500',
+    systemReco: 'LV5-500',
+    description: ''
+  },
+  {
+    id: '15',
+    reservationDate: '2025-01-06',
+    createdDate: '17:40:00',
+    createdBy: 'Sarah Wilson',
+    action: 'ACCEPTED',
+    reco: 'LV2-200',
+    systemReco: 'LV2-200',
+    description: 'Early bird discount confirmed'
+  },
+  {
+    id: '16',
+    reservationDate: '2025-01-06',
+    createdDate: '16:25:00',
+    createdBy: 'Michael Davis',
+    action: 'REJECTED',
+    reco: 'LV6-600',
+    systemReco: 'LV4-400',
+    description: 'Rate exceeds budget limits'
   }
 ];
 
@@ -173,11 +274,11 @@ const PricesTable = () => {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Table */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
         <Table>
-          <TableHeader className="bg-gray-100">
+          <TableHeader className="bg-gray-50 border-b border-gray-200">
             <TableRow>
               <FilterHeader 
                 title="Res. Date" 
@@ -185,7 +286,7 @@ const PricesTable = () => {
                 filterable
                 onSort={() => handleSort('reservationDate')}
                 sortDirection={sortConfig?.key === 'reservationDate' ? sortConfig.direction : null}
-                className="text-gray-700 font-medium"
+                className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
                 filterContent={<DateFilter />}
               />
               <FilterHeader 
@@ -194,7 +295,7 @@ const PricesTable = () => {
                 filterable
                 onSort={() => handleSort('createdDate')}
                 sortDirection={sortConfig?.key === 'createdDate' ? sortConfig.direction : null}
-                className="text-gray-700 font-medium"
+                className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
                 filterContent={<DateTimeFilter />}
               />
               <FilterHeader 
@@ -203,7 +304,7 @@ const PricesTable = () => {
                 filterable
                 onSort={() => handleSort('createdBy')}
                 sortDirection={sortConfig?.key === 'createdBy' ? sortConfig.direction : null}
-                className="text-gray-700 font-medium"
+                className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
                 filterContent={<UserFilter />}
               />
               <FilterHeader 
@@ -212,28 +313,34 @@ const PricesTable = () => {
                 filterable
                 onSort={() => handleSort('action')}
                 sortDirection={sortConfig?.key === 'action' ? sortConfig.direction : null}
-                className="text-gray-700 font-medium"
+                className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
                 filterContent={<ActionFilter />}
               />
-              <TableHead className="text-gray-700 font-medium">RECO</TableHead>
-              <TableHead className="text-gray-700 font-medium">proRMS RECO</TableHead>
-              <TableHead className="text-gray-700 font-medium">Description</TableHead>
+              <TableHead className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0">RECO</TableHead>
+              <TableHead className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0">proRMS RECO</TableHead>
+              <TableHead className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0">Description</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedData.map((entry) => (
-              <TableRow key={entry.id} className="hover:bg-gray-50">
-                <TableCell className="font-medium">{entry.reservationDate}</TableCell>
-                <TableCell>{entry.createdDate}</TableCell>
-                <TableCell>{entry.createdBy}</TableCell>
-                <TableCell>
+            {paginatedData.map((entry, index) => (
+              <TableRow 
+                key={entry.id} 
+                className={`
+                  ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} 
+                  hover:bg-blue-50/50 border-b border-gray-100 last:border-b-0
+                `}
+              >
+                <TableCell className="font-medium border-r border-gray-100 last:border-r-0">{entry.reservationDate}</TableCell>
+                <TableCell className="border-r border-gray-100 last:border-r-0">{entry.createdDate}</TableCell>
+                <TableCell className="border-r border-gray-100 last:border-r-0">{entry.createdBy}</TableCell>
+                <TableCell className="border-r border-gray-100 last:border-r-0">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getActionBadgeClass(entry.action)}`}>
                     {entry.action}
                   </span>
                 </TableCell>
-                <TableCell>{entry.reco}</TableCell>
-                <TableCell>{entry.systemReco}</TableCell>
-                <TableCell>{entry.description}</TableCell>
+                <TableCell className="border-r border-gray-100 last:border-r-0">{entry.reco}</TableCell>
+                <TableCell className="border-r border-gray-100 last:border-r-0">{entry.systemReco}</TableCell>
+                <TableCell className="border-r border-gray-100 last:border-r-0">{entry.description}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -241,7 +348,7 @@ const PricesTable = () => {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between bg-white px-4 py-3 rounded-lg shadow border border-gray-200">
         <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-700">Show</span>
           <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
