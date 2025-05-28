@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import FilterHeader from './FilterHeader';
+import DateRangeFilter from './DateRangeFilter';
 
 interface PriceEntry {
   id: string;
@@ -191,18 +192,30 @@ const PricesTable = () => {
   const paginatedData = data.slice(startIndex, startIndex + pageSize);
 
   const handleSort = (key: keyof PriceEntry) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
+    if (!sortConfig || sortConfig.key !== key) {
+      // First click: ascending
+      setSortConfig({ key, direction: 'asc' });
+    } else if (sortConfig.direction === 'asc') {
+      // Second click: descending
+      setSortConfig({ key, direction: 'desc' });
+    } else {
+      // Third click: deactivate sorting
+      setSortConfig(null);
     }
-    setSortConfig({ key, direction });
 
-    const sortedData = [...data].sort((a, b) => {
-      if (a[key] < b[key]) return direction === 'asc' ? -1 : 1;
-      if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
-      return 0;
-    });
-    setData(sortedData);
+    // Apply sorting if active
+    if (sortConfig?.key !== key || sortConfig?.direction !== 'desc') {
+      const direction = !sortConfig || sortConfig.key !== key ? 'asc' : 'desc';
+      const sortedData = [...data].sort((a, b) => {
+        if (a[key] < b[key]) return direction === 'asc' ? -1 : 1;
+        if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+      setData(sortedData);
+    } else {
+      // Reset to original order when deactivating
+      setData([...mockPricesData]);
+    }
   };
 
   const getActionBadgeClass = (action: string) => {
@@ -220,31 +233,11 @@ const PricesTable = () => {
     }
   };
 
-  const DateFilter = () => (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">Filter by date</label>
-      <input
-        type="date"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF732D] focus:border-[#FF732D]"
-      />
-    </div>
-  );
-
-  const DateTimeFilter = () => (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">Filter by date & time</label>
-      <input
-        type="datetime-local"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF732D] focus:border-[#FF732D]"
-      />
-    </div>
-  );
-
   const UserFilter = () => (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">Filter by user</label>
+      <label className="block text-xs font-medium text-gray-700">Filter by user</label>
       <Select>
-        <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D]">
+        <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D] h-8 text-xs">
           <SelectValue placeholder="Select users" />
         </SelectTrigger>
         <SelectContent>
@@ -258,9 +251,9 @@ const PricesTable = () => {
 
   const ActionFilter = () => (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">Filter by action</label>
+      <label className="block text-xs font-medium text-gray-700">Filter by action</label>
       <Select>
-        <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D]">
+        <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D] h-8 text-xs">
           <SelectValue placeholder="Select actions" />
         </SelectTrigger>
         <SelectContent>
@@ -281,13 +274,13 @@ const PricesTable = () => {
           <TableHeader className="bg-gray-50 border-b border-gray-200">
             <TableRow>
               <FilterHeader 
-                title="Res. Date" 
+                title="Reservation Date" 
                 sortable 
                 filterable
                 onSort={() => handleSort('reservationDate')}
                 sortDirection={sortConfig?.key === 'reservationDate' ? sortConfig.direction : null}
                 className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
-                filterContent={<DateFilter />}
+                filterContent={<DateRangeFilter label="Filter by date range" />}
               />
               <FilterHeader 
                 title="Created date" 
@@ -296,7 +289,7 @@ const PricesTable = () => {
                 onSort={() => handleSort('createdDate')}
                 sortDirection={sortConfig?.key === 'createdDate' ? sortConfig.direction : null}
                 className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
-                filterContent={<DateTimeFilter />}
+                filterContent={<DateRangeFilter label="Filter by date & time range" includeTime />}
               />
               <FilterHeader 
                 title="Created By" 
@@ -316,9 +309,9 @@ const PricesTable = () => {
                 className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
                 filterContent={<ActionFilter />}
               />
-              <TableHead className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0">RECO</TableHead>
-              <TableHead className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0">proRMS RECO</TableHead>
-              <TableHead className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0">Description</TableHead>
+              <TableHead className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0" style={{ fontSize: '10px' }}>RECO</TableHead>
+              <TableHead className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0" style={{ fontSize: '10px' }}>proRMS RECO</TableHead>
+              <TableHead className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0" style={{ fontSize: '10px' }}>Description</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -330,17 +323,17 @@ const PricesTable = () => {
                   hover:bg-blue-50/50 border-b border-gray-100 last:border-b-0
                 `}
               >
-                <TableCell className="font-medium border-r border-gray-100 last:border-r-0">{entry.reservationDate}</TableCell>
-                <TableCell className="border-r border-gray-100 last:border-r-0">{entry.createdDate}</TableCell>
-                <TableCell className="border-r border-gray-100 last:border-r-0">{entry.createdBy}</TableCell>
+                <TableCell className="font-medium border-r border-gray-100 last:border-r-0" style={{ fontSize: '10px' }}>{entry.reservationDate}</TableCell>
+                <TableCell className="border-r border-gray-100 last:border-r-0" style={{ fontSize: '10px' }}>{entry.createdDate}</TableCell>
+                <TableCell className="border-r border-gray-100 last:border-r-0" style={{ fontSize: '10px' }}>{entry.createdBy}</TableCell>
                 <TableCell className="border-r border-gray-100 last:border-r-0">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getActionBadgeClass(entry.action)}`}>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getActionBadgeClass(entry.action)}`} style={{ fontSize: '10px' }}>
                     {entry.action}
                   </span>
                 </TableCell>
-                <TableCell className="border-r border-gray-100 last:border-r-0">{entry.reco}</TableCell>
-                <TableCell className="border-r border-gray-100 last:border-r-0">{entry.systemReco}</TableCell>
-                <TableCell className="border-r border-gray-100 last:border-r-0">{entry.description}</TableCell>
+                <TableCell className="border-r border-gray-100 last:border-r-0" style={{ fontSize: '10px' }}>{entry.reco}</TableCell>
+                <TableCell className="border-r border-gray-100 last:border-r-0" style={{ fontSize: '10px' }}>{entry.systemReco}</TableCell>
+                <TableCell className="border-r border-gray-100 last:border-r-0" style={{ fontSize: '10px' }}>{entry.description}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -350,9 +343,9 @@ const PricesTable = () => {
       {/* Pagination */}
       <div className="flex items-center justify-between bg-white px-4 py-3 rounded-lg shadow border border-gray-200">
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-700">Show</span>
+          <span className="text-xs text-gray-700">Show</span>
           <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
-            <SelectTrigger className="w-20">
+            <SelectTrigger className="w-16 h-8 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -361,7 +354,7 @@ const PricesTable = () => {
               <SelectItem value="50">50</SelectItem>
             </SelectContent>
           </Select>
-          <span className="text-sm text-gray-700">entries</span>
+          <span className="text-xs text-gray-700">entries</span>
         </div>
 
         <Pagination>
