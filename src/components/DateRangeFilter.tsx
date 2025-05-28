@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface DateRangeFilterProps {
@@ -21,18 +20,22 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [fromTime, setFromTime] = useState<string>('00:00:00');
   const [toTime, setToTime] = useState<string>('23:59:59');
+  const [hoveredDate, setHoveredDate] = useState<Date | undefined>(undefined);
 
   const handleDateSelect = (date: Date | undefined) => {
+    if (!date) return;
+
     if (!fromDate || (fromDate && toDate)) {
       // Start new selection
       setFromDate(date);
       setToDate(undefined);
+      setHoveredDate(undefined);
       if (onDateRangeChange) {
         onDateRangeChange(date, undefined);
       }
     } else if (fromDate && !toDate) {
       // Complete the range
-      if (date && date < fromDate) {
+      if (date < fromDate) {
         // If selected date is before start date, swap them
         setFromDate(date);
         setToDate(fromDate);
@@ -45,9 +48,10 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
           onDateRangeChange(fromDate, date);
         }
       }
+      setHoveredDate(undefined);
       
       // Auto-apply when both dates are selected
-      if (date && onFilterApply) {
+      if (onFilterApply) {
         setTimeout(() => {
           onFilterApply();
         }, 100);
@@ -55,82 +59,85 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
     }
   };
 
-  const clearFilter = () => {
-    setFromDate(undefined);
-    setToDate(undefined);
-    setFromTime('00:00:00');
-    setToTime('23:59:59');
-    if (onDateRangeChange) {
-      onDateRangeChange(undefined, undefined);
-    }
-    if (onFilterApply) {
-      onFilterApply();
+  const handleDateHover = (date: Date | undefined) => {
+    if (fromDate && !toDate && date) {
+      setHoveredDate(date);
     }
   };
 
   const isDateInRange = (date: Date) => {
-    if (!fromDate || !toDate) return false;
-    return date >= fromDate && date <= toDate;
+    if (fromDate && toDate) {
+      return date >= fromDate && date <= toDate;
+    }
+    return false;
+  };
+
+  const isDateInHoverRange = (date: Date) => {
+    if (fromDate && !toDate && hoveredDate) {
+      const start = fromDate < hoveredDate ? fromDate : hoveredDate;
+      const end = fromDate < hoveredDate ? hoveredDate : fromDate;
+      return date >= start && date <= end;
+    }
+    return false;
   };
 
   const isDateRangeStart = (date: Date) => {
+    if (fromDate && toDate) {
+      return date.getTime() === fromDate.getTime();
+    }
+    if (fromDate && !toDate && hoveredDate) {
+      const start = fromDate < hoveredDate ? fromDate : hoveredDate;
+      return date.getTime() === start.getTime();
+    }
     return fromDate && date.getTime() === fromDate.getTime();
   };
 
   const isDateRangeEnd = (date: Date) => {
-    return toDate && date.getTime() === toDate.getTime();
+    if (fromDate && toDate) {
+      return date.getTime() === toDate.getTime();
+    }
+    if (fromDate && !toDate && hoveredDate) {
+      const end = fromDate < hoveredDate ? hoveredDate : fromDate;
+      return date.getTime() === end.getTime();
+    }
+    return false;
+  };
+
+  const isDateInMiddle = (date: Date) => {
+    if (fromDate && toDate) {
+      return date > fromDate && date < toDate;
+    }
+    if (fromDate && !toDate && hoveredDate) {
+      const start = fromDate < hoveredDate ? fromDate : hoveredDate;
+      const end = fromDate < hoveredDate ? hoveredDate : fromDate;
+      return date > start && date < end;
+    }
+    return false;
   };
 
   return (
     <div className="p-4">
       {label && <label className="block text-xs font-medium text-gray-700 mb-4">{label}</label>}
       
-      <div className="flex space-x-2 mb-4">
-        <div className="flex-1">
-          <label className="block text-xs text-gray-600 mb-1">From</label>
-          <Button
-            variant="outline"
-            size="sm"
-            className={cn(
-              "w-full justify-start text-left font-normal text-xs h-8",
-              !fromDate && "text-muted-foreground"
-            )}
-          >
-            {fromDate ? fromDate.toLocaleDateString() : "Select date"}
-          </Button>
-        </div>
-        <div className="flex-1">
-          <label className="block text-xs text-gray-600 mb-1">To</label>
-          <Button
-            variant="outline"
-            size="sm"
-            className={cn(
-              "w-full justify-start text-left font-normal text-xs h-8",
-              !toDate && "text-muted-foreground"
-            )}
-          >
-            {toDate ? toDate.toLocaleDateString() : "Select date"}
-          </Button>
-        </div>
-      </div>
-
       <Calendar
         mode="single"
         selected={fromDate}
         onSelect={handleDateSelect}
+        onDayMouseEnter={handleDateHover}
+        onDayMouseLeave={() => setHoveredDate(undefined)}
         className={cn("p-3 pointer-events-auto border rounded-md")}
         initialFocus
         modifiers={{
-          range_start: fromDate ? [fromDate] : [],
-          range_end: toDate ? [toDate] : [],
-          range_middle: fromDate && toDate ? (date: Date) => {
-            return date > fromDate && date < toDate;
-          } : () => false,
+          range_start: (date: Date) => isDateRangeStart(date),
+          range_end: (date: Date) => isDateRangeEnd(date),
+          range_middle: (date: Date) => isDateInMiddle(date),
+          in_range: (date: Date) => isDateInRange(date) || isDateInHoverRange(date),
         }}
         modifiersClassNames={{
-          range_start: "bg-[#FF732D] text-white rounded-l-md hover:bg-[#FF732D] hover:text-white",
-          range_end: "bg-[#FF732D] text-white rounded-r-md hover:bg-[#FF732D] hover:text-white",
+          range_start: "bg-[#FF732D] text-white hover:bg-[#FF732D] hover:text-white",
+          range_end: "bg-[#FF732D] text-white hover:bg-[#FF732D] hover:text-white",
           range_middle: "bg-[#FF732D]/20 text-[#FF732D] hover:bg-[#FF732D]/30",
+          in_range: "bg-[#FF732D]/20 text-[#FF732D]",
         }}
       />
 
@@ -158,17 +165,6 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
           </div>
         </div>
       )}
-
-      <div className="flex justify-between space-x-2 pt-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={clearFilter}
-          className="text-xs"
-        >
-          Clear
-        </Button>
-      </div>
     </div>
   );
 };
