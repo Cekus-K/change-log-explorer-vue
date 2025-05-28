@@ -18,8 +18,6 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
 }) => {
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
-  const [fromTime, setFromTime] = useState<string>('00:00:00');
-  const [toTime, setToTime] = useState<string>('23:59:59');
   const [hoveredDate, setHoveredDate] = useState<Date | undefined>(undefined);
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -134,37 +132,12 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
           in_range: (date: Date) => isDateInRange(date) || isDateInHoverRange(date),
         }}
         modifiersClassNames={{
-          range_start: "bg-[#FF732D] text-white hover:bg-[#FF732D] hover:text-white",
-          range_end: "bg-[#FF732D] text-white hover:bg-[#FF732D] hover:text-white",
-          range_middle: "bg-[#FF732D]/20 text-[#FF732D] hover:bg-[#FF732D]/30",
-          in_range: "bg-[#FF732D]/20 text-[#FF732D]",
+          range_start: "bg-[#FF732D] text-white hover:bg-[#FF732D] hover:text-white rounded-full",
+          range_end: "bg-[#FF732D] text-white hover:bg-[#FF732D] hover:text-white rounded-full",
+          range_middle: "bg-[#FFF4F0] text-[#FF732D] hover:bg-[#FFF4F0]",
+          in_range: "bg-[#FFF4F0] text-[#FF732D]",
         }}
       />
-
-      {includeTime && (
-        <div className="flex space-x-2 mt-4">
-          <div className="flex-1">
-            <label className="block text-xs text-gray-600 mb-1">From Time</label>
-            <input
-              type="time"
-              step="1"
-              value={fromTime}
-              onChange={(e) => setFromTime(e.target.value)}
-              className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-[#FF732D] focus:border-[#FF732D]"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="block text-xs text-gray-600 mb-1">To Time</label>
-            <input
-              type="time"
-              step="1"
-              value={toTime}
-              onChange={(e) => setToTime(e.target.value)}
-              className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-[#FF732D] focus:border-[#FF732D]"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };
