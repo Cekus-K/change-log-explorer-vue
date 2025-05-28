@@ -30,18 +30,12 @@ const ChangelogHistory = () => {
 
           <TabsContent value="prices" className="p-0 mt-0">
             <div className="p-6">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Prices History</h2>
-              </div>
               <PricesTable />
             </div>
           </TabsContent>
 
           <TabsContent value="restrictions" className="p-0 mt-0">
             <div className="p-6">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Restrictions History</h2>
-              </div>
               <RestrictionsTable />
             </div>
           </TabsContent>

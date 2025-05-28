@@ -356,11 +356,15 @@ const RestrictionsTable = () => {
     <div className="space-y-6">
       {/* Active Filters and Export Button */}
       <div className="flex items-center justify-between">
-        <ActiveFilters
-          filters={activeFilters}
-          onRemoveFilter={removeFilter}
-          onClearAll={clearAllFilters}
-        />
+        {activeFilters.length > 0 ? (
+          <ActiveFilters
+            filters={activeFilters}
+            onRemoveFilter={removeFilter}
+            onClearAll={clearAllFilters}
+          />
+        ) : (
+          <div />
+        )}
         <Button className="bg-[#FF732D] hover:bg-[#E5652A] text-white shadow-md hover:shadow-lg transition-all duration-200">
           <Download className="w-4 h-4 mr-2" />
           Export XLSX

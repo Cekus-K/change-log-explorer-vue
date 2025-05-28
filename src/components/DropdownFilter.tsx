@@ -28,20 +28,18 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
   };
 
   return (
-    <div className="min-w-[180px]">
-      <Select onValueChange={handleValueChange}>
-        <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D] h-8 text-xs">
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    <Select onValueChange={handleValueChange} defaultOpen>
+      <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D] h-8 text-xs min-w-[180px] opacity-0 pointer-events-none">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 };
 

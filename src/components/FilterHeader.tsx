@@ -35,6 +35,10 @@ const FilterHeader: React.FC<FilterHeaderProps> = ({
     }
   };
 
+  const handleFilterClick = () => {
+    setIsFilterOpen(true);
+  };
+
   return (
     <TableHead className={className} style={{ fontSize: '10px' }}>
       <div className="flex items-center justify-between">
@@ -67,7 +71,7 @@ const FilterHeader: React.FC<FilterHeaderProps> = ({
                 variant="ghost" 
                 size="sm" 
                 className="h-4 w-4 p-0 hover:bg-white/20"
-                onClick={() => setIsFilterOpen(true)}
+                onClick={handleFilterClick}
               >
                 <Filter className="w-2 h-2" />
               </Button>
