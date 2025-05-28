@@ -29,10 +29,10 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
 
   return (
     <Select onValueChange={handleValueChange} defaultOpen>
-      <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D] h-8 text-xs min-w-[180px] opacity-0 pointer-events-none">
+      <SelectTrigger className="sr-only">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="min-w-[180px]">
         {options.map((option) => (
           <SelectItem key={option.value} value={option.value}>
             {option.label}
