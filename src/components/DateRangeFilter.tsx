@@ -119,7 +119,7 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
       
       <Calendar
         mode="single"
-        selected={fromDate}
+        selected={undefined}
         onSelect={handleDateSelect}
         onDayMouseEnter={handleDateHover}
         onDayMouseLeave={() => setHoveredDate(undefined)}
@@ -132,10 +132,10 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
           in_range: (date: Date) => isDateInRange(date) || isDateInHoverRange(date),
         }}
         modifiersClassNames={{
-          range_start: "bg-[#FF732D] text-white hover:bg-[#FF732D] hover:text-white rounded-full",
-          range_end: "bg-[#FF732D] text-white hover:bg-[#FF732D] hover:text-white rounded-full",
-          range_middle: "bg-[#FFF4F0] text-[#FF732D] hover:bg-[#FFF4F0]",
-          in_range: "bg-[#FFF4F0] text-[#FF732D]",
+          range_start: "!bg-[#FF732D] !text-white hover:!bg-[#FF732D] hover:!text-white !rounded-full border-0",
+          range_end: "!bg-[#FF732D] !text-white hover:!bg-[#FF732D] hover:!text-white !rounded-full border-0",
+          range_middle: "!bg-[#FFF4F0] !text-[#FF732D] hover:!bg-[#FFF4F0] !rounded-none",
+          in_range: "!bg-[#FFF4F0] !text-[#FF732D] !rounded-none",
         }}
       />
     </div>
