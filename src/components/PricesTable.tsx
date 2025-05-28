@@ -323,7 +323,6 @@ const PricesTable = () => {
                 className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
                 filterContent={
                   <DateRangeFilter 
-                    label="Filter by date range" 
                     onDateRangeChange={(from, to) => handleDateRangeFilter('reservationDate', from, to)}
                   />
                 }
@@ -337,7 +336,6 @@ const PricesTable = () => {
                 className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
                 filterContent={
                   <DateRangeFilter 
-                    label="Filter by date & time range" 
                     includeTime 
                     onDateRangeChange={(from, to) => handleDateRangeFilter('createdDate', from, to)}
                   />
@@ -352,7 +350,6 @@ const PricesTable = () => {
                 className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
                 filterContent={
                   <DropdownFilter
-                    label="Filter by user"
                     options={userOptions}
                     placeholder="Select users"
                     onValueChange={(value) => {
@@ -371,7 +368,6 @@ const PricesTable = () => {
                 className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
                 filterContent={
                   <DropdownFilter
-                    label="Filter by action"
                     options={actionOptions}
                     placeholder="Select actions"
                     onValueChange={(value) => {

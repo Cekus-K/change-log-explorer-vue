@@ -3,7 +3,6 @@ import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface DropdownFilterProps {
-  label: string;
   options: { value: string; label: string }[];
   placeholder?: string;
   onFilterApply?: () => void;
@@ -11,7 +10,6 @@ interface DropdownFilterProps {
 }
 
 const DropdownFilter: React.FC<DropdownFilterProps> = ({
-  label,
   options,
   placeholder = "Select option",
   onFilterApply,
@@ -30,8 +28,7 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
   };
 
   return (
-    <div className="p-4">
-      <label className="block text-xs font-medium text-gray-700 mb-2">{label}</label>
+    <div className="min-w-[180px]">
       <Select onValueChange={handleValueChange}>
         <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D] h-8 text-xs">
           <SelectValue placeholder={placeholder} />
