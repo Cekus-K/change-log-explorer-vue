@@ -1,18 +1,11 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
 import PricesTable from './PricesTable';
 import RestrictionsTable from './RestrictionsTable';
 
 const ChangelogHistory = () => {
   const [activeTab, setActiveTab] = useState('prices');
-
-  const handleExport = (type: 'prices' | 'restrictions') => {
-    // Export functionality - would integrate with actual data export
-    console.log(`Exporting ${type} data to XLSX`);
-  };
 
   return (
     <div className="w-full max-w-7xl mx-auto p-6">
@@ -37,15 +30,8 @@ const ChangelogHistory = () => {
 
           <TabsContent value="prices" className="p-0 mt-0">
             <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
+              <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">Prices History</h2>
-                <Button
-                  onClick={() => handleExport('prices')}
-                  className="bg-[#FF732D] hover:bg-[#E5652A] text-white shadow-md hover:shadow-lg transition-all duration-200"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export XLSX
-                </Button>
               </div>
               <PricesTable />
             </div>
@@ -53,15 +39,8 @@ const ChangelogHistory = () => {
 
           <TabsContent value="restrictions" className="p-0 mt-0">
             <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
+              <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">Restrictions History</h2>
-                <Button
-                  onClick={() => handleExport('restrictions')}
-                  className="bg-[#FF732D] hover:bg-[#E5652A] text-white shadow-md hover:shadow-lg transition-all duration-200"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export XLSX
-                </Button>
               </div>
               <RestrictionsTable />
             </div>

@@ -7,9 +7,16 @@ import { cn } from '@/lib/utils';
 interface DateRangeFilterProps {
   label: string;
   includeTime?: boolean;
+  onFilterApply?: () => void;
+  onDateRangeChange?: (from: Date | undefined, to: Date | undefined) => void;
 }
 
-const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ label, includeTime = false }) => {
+const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ 
+  label, 
+  includeTime = false,
+  onFilterApply,
+  onDateRangeChange
+}) => {
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [selectingFrom, setSelectingFrom] = useState(true);
@@ -18,29 +25,39 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ label, includeTime = 
     if (selectingFrom) {
       setFromDate(date);
       setSelectingFrom(false);
+      if (onDateRangeChange) {
+        onDateRangeChange(date, toDate);
+      }
     } else {
       setToDate(date);
       setSelectingFrom(true);
+      if (onDateRangeChange) {
+        onDateRangeChange(fromDate, date);
+      }
+      // Auto-apply when both dates are selected
+      if (fromDate && date && onFilterApply) {
+        setTimeout(() => {
+          onFilterApply();
+        }, 100);
+      }
     }
-  };
-
-  const handleFromClick = () => {
-    setSelectingFrom(true);
-  };
-
-  const handleToClick = () => {
-    setSelectingFrom(false);
   };
 
   const clearFilter = () => {
     setFromDate(undefined);
     setToDate(undefined);
     setSelectingFrom(true);
+    if (onDateRangeChange) {
+      onDateRangeChange(undefined, undefined);
+    }
+    if (onFilterApply) {
+      onFilterApply();
+    }
   };
 
   return (
-    <div className="space-y-4">
-      <label className="block text-xs font-medium text-gray-700">{label}</label>
+    <div className="p-4">
+      <label className="block text-xs font-medium text-gray-700 mb-4">{label}</label>
       
       <div className="flex space-x-2 mb-4">
         <div className="flex-1">
@@ -53,8 +70,7 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ label, includeTime = 
               !fromDate && "text-muted-foreground",
               selectingFrom && "ring-2 ring-[#FF732D]"
             )}
-            onClick={handleFromClick}
-            onDoubleClick={handleFromClick}
+            onClick={() => setSelectingFrom(true)}
           >
             {fromDate ? fromDate.toLocaleDateString() : "Select date"}
           </Button>
@@ -69,8 +85,7 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ label, includeTime = 
               !toDate && "text-muted-foreground",
               !selectingFrom && "ring-2 ring-[#FF732D]"
             )}
-            onClick={handleToClick}
-            onDoubleClick={handleToClick}
+            onClick={() => setSelectingFrom(false)}
           >
             {toDate ? toDate.toLocaleDateString() : "Select date"}
           </Button>
@@ -86,7 +101,7 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ label, includeTime = 
       />
 
       {includeTime && (fromDate || toDate) && (
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 mt-4">
           {fromDate && (
             <div className="flex-1">
               <label className="block text-xs text-gray-600 mb-1">From Time</label>
@@ -108,7 +123,7 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ label, includeTime = 
         </div>
       )}
 
-      <div className="flex justify-between space-x-2 pt-2">
+      <div className="flex justify-between space-x-2 pt-4">
         <Button
           variant="outline"
           size="sm"
@@ -116,12 +131,6 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ label, includeTime = 
           className="text-xs"
         >
           Clear
-        </Button>
-        <Button
-          size="sm"
-          className="bg-[#FF732D] hover:bg-[#E5652A] text-white text-xs"
-        >
-          Apply Filter
         </Button>
       </div>
     </div>

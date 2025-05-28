@@ -3,8 +3,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Download } from 'lucide-react';
 import FilterHeader from './FilterHeader';
 import DateRangeFilter from './DateRangeFilter';
+import DropdownFilter from './DropdownFilter';
+import ActiveFilters from './ActiveFilters';
 
 interface RestrictionEntry {
   id: string;
@@ -236,6 +239,7 @@ const RestrictionsTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [sortConfig, setSortConfig] = useState<{ key: keyof RestrictionEntry; direction: 'asc' | 'desc' } | null>(null);
+  const [activeFilters, setActiveFilters] = useState<Array<{ id: string; label: string; value: string }>>([]);
 
   const totalPages = Math.ceil(data.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
@@ -283,79 +287,90 @@ const RestrictionsTable = () => {
     }
   };
 
-  const UserFilter = () => (
-    <div className="space-y-2">
-      <label className="block text-xs font-medium text-gray-700">Filter by user</label>
-      <Select>
-        <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D] h-8 text-xs">
-          <SelectValue placeholder="Select users" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="prorms">proRMS</SelectItem>
-          <SelectItem value="jan">Jan Kowalski</SelectItem>
-          <SelectItem value="adam">Adam Nowak</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
-  );
+  const handleDateRangeFilter = (field: string, from: Date | undefined, to: Date | undefined) => {
+    const filterId = `date-${field}`;
+    const newFilters = activeFilters.filter(f => f.id !== filterId);
+    
+    if (from && to) {
+      newFilters.push({
+        id: filterId,
+        label: field === 'reservationDate' ? 'Reservation Date' : 'Created Date',
+        value: `${from.toLocaleDateString()} - ${to.toLocaleDateString()}`
+      });
+    }
+    
+    setActiveFilters(newFilters);
+  };
 
-  const ActionFilter = () => (
-    <div className="space-y-2">
-      <label className="block text-xs font-medium text-gray-700">Filter by action</label>
-      <Select>
-        <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D] h-8 text-xs">
-          <SelectValue placeholder="Select actions" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="recommended">RECOMMENDED</SelectItem>
-          <SelectItem value="overridden">OVERRIDDEN</SelectItem>
-          <SelectItem value="accepted">ACCEPTED</SelectItem>
-          <SelectItem value="rejected">REJECTED</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
-  );
+  const handleDropdownFilter = (field: string, value: string, label: string) => {
+    const filterId = `dropdown-${field}`;
+    const newFilters = activeFilters.filter(f => f.id !== filterId);
+    
+    newFilters.push({
+      id: filterId,
+      label,
+      value
+    });
+    
+    setActiveFilters(newFilters);
+  };
 
-  const RMLFilter = () => (
-    <div className="space-y-2">
-      <label className="block text-xs font-medium text-gray-700">Filter by RML</label>
-      <Select>
-        <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D] h-8 text-xs">
-          <SelectValue placeholder="Select RML" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="a">A</SelectItem>
-          <SelectItem value="b">B</SelectItem>
-          <SelectItem value="c">C</SelectItem>
-          <SelectItem value="all">ALL</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
-  );
+  const removeFilter = (filterId: string) => {
+    setActiveFilters(activeFilters.filter(f => f.id !== filterId));
+  };
 
-  const GroupTypeFilter = () => (
-    <div className="space-y-2">
-      <label className="block text-xs font-medium text-gray-700">Filter by group type</label>
-      <Select>
-        <SelectTrigger className="focus:ring-[#FF732D] focus:border-[#FF732D] h-8 text-xs">
-          <SelectValue placeholder="Select type" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="std">STD</SelectItem>
-          <SelectItem value="dlx">DLX</SelectItem>
-          <SelectItem value="su">SU</SelectItem>
-          <SelectItem value="all">ALL</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
-  );
+  const clearAllFilters = () => {
+    setActiveFilters([]);
+  };
+
+  const userOptions = [
+    { value: 'prorms', label: 'proRMS' },
+    { value: 'jan', label: 'Jan Kowalski' },
+    { value: 'adam', label: 'Adam Nowak' },
+    { value: 'maria', label: 'Maria Garcia' },
+    { value: 'john', label: 'John Smith' }
+  ];
+
+  const actionOptions = [
+    { value: 'recommended', label: 'RECOMMENDED' },
+    { value: 'overridden', label: 'OVERRIDDEN' },
+    { value: 'accepted', label: 'ACCEPTED' },
+    { value: 'rejected', label: 'REJECTED' }
+  ];
+
+  const rmlOptions = [
+    { value: 'a', label: 'A' },
+    { value: 'b', label: 'B' },
+    { value: 'c', label: 'C' },
+    { value: 'all', label: 'ALL' }
+  ];
+
+  const groupTypeOptions = [
+    { value: 'std', label: 'STD' },
+    { value: 'dlx', label: 'DLX' },
+    { value: 'su', label: 'SU' },
+    { value: 'all', label: 'ALL' }
+  ];
 
   return (
     <div className="space-y-6">
+      {/* Active Filters and Export Button */}
+      <div className="flex items-center justify-between">
+        <ActiveFilters
+          filters={activeFilters}
+          onRemoveFilter={removeFilter}
+          onClearAll={clearAllFilters}
+        />
+        <Button className="bg-[#FF732D] hover:bg-[#E5652A] text-white shadow-md hover:shadow-lg transition-all duration-200">
+          <Download className="w-4 h-4 mr-2" />
+          Export XLSX
+        </Button>
+      </div>
+
       {/* Table */}
       <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
         <Table>
-          <TableHeader className="bg-gray-50 border-b border-gray-200">
+          <TableHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
             <TableRow>
               <FilterHeader 
                 title="Reservation Date" 
@@ -364,7 +379,12 @@ const RestrictionsTable = () => {
                 onSort={() => handleSort('reservationDate')}
                 sortDirection={sortConfig?.key === 'reservationDate' ? sortConfig.direction : null}
                 className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
-                filterContent={<DateRangeFilter label="Filter by date range" />}
+                filterContent={
+                  <DateRangeFilter 
+                    label="Filter by date range" 
+                    onDateRangeChange={(from, to) => handleDateRangeFilter('reservationDate', from, to)}
+                  />
+                }
               />
               <FilterHeader 
                 title="Created date" 
@@ -373,7 +393,13 @@ const RestrictionsTable = () => {
                 onSort={() => handleSort('createdDate')}
                 sortDirection={sortConfig?.key === 'createdDate' ? sortConfig.direction : null}
                 className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
-                filterContent={<DateRangeFilter label="Filter by date & time range" includeTime />}
+                filterContent={
+                  <DateRangeFilter 
+                    label="Filter by date & time range" 
+                    includeTime 
+                    onDateRangeChange={(from, to) => handleDateRangeFilter('createdDate', from, to)}
+                  />
+                }
               />
               <FilterHeader 
                 title="Created By" 
@@ -382,7 +408,17 @@ const RestrictionsTable = () => {
                 onSort={() => handleSort('createdBy')}
                 sortDirection={sortConfig?.key === 'createdBy' ? sortConfig.direction : null}
                 className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
-                filterContent={<UserFilter />}
+                filterContent={
+                  <DropdownFilter
+                    label="Filter by user"
+                    options={userOptions}
+                    placeholder="Select users"
+                    onValueChange={(value) => {
+                      const option = userOptions.find(opt => opt.value === value);
+                      if (option) handleDropdownFilter('createdBy', option.label, 'Created By');
+                    }}
+                  />
+                }
               />
               <FilterHeader 
                 title="Action" 
@@ -391,7 +427,17 @@ const RestrictionsTable = () => {
                 onSort={() => handleSort('action')}
                 sortDirection={sortConfig?.key === 'action' ? sortConfig.direction : null}
                 className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
-                filterContent={<ActionFilter />}
+                filterContent={
+                  <DropdownFilter
+                    label="Filter by action"
+                    options={actionOptions}
+                    placeholder="Select actions"
+                    onValueChange={(value) => {
+                      const option = actionOptions.find(opt => opt.value === value);
+                      if (option) handleDropdownFilter('action', option.label, 'Action');
+                    }}
+                  />
+                }
               />
               <TableHead className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0" style={{ fontSize: '10px' }}>RECO</TableHead>
               <FilterHeader 
@@ -401,7 +447,17 @@ const RestrictionsTable = () => {
                 onSort={() => handleSort('rml')}
                 sortDirection={sortConfig?.key === 'rml' ? sortConfig.direction : null}
                 className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
-                filterContent={<RMLFilter />}
+                filterContent={
+                  <DropdownFilter
+                    label="Filter by RML"
+                    options={rmlOptions}
+                    placeholder="Select RML"
+                    onValueChange={(value) => {
+                      const option = rmlOptions.find(opt => opt.value === value);
+                      if (option) handleDropdownFilter('rml', option.label, 'RML');
+                    }}
+                  />
+                }
               />
               <FilterHeader 
                 title="Group Type" 
@@ -410,7 +466,17 @@ const RestrictionsTable = () => {
                 onSort={() => handleSort('groupType')}
                 sortDirection={sortConfig?.key === 'groupType' ? sortConfig.direction : null}
                 className="text-gray-700 font-semibold border-r border-gray-200 last:border-r-0"
-                filterContent={<GroupTypeFilter />}
+                filterContent={
+                  <DropdownFilter
+                    label="Filter by group type"
+                    options={groupTypeOptions}
+                    placeholder="Select type"
+                    onValueChange={(value) => {
+                      const option = groupTypeOptions.find(opt => opt.value === value);
+                      if (option) handleDropdownFilter('groupType', option.label, 'Group Type');
+                    }}
+                  />
+                }
               />
               <FilterHeader 
                 title="Room Type" 

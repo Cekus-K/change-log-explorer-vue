@@ -13,6 +13,7 @@ interface FilterHeaderProps {
   sortDirection?: 'asc' | 'desc' | null;
   className?: string;
   filterContent?: React.ReactNode;
+  onFilterApply?: () => void;
 }
 
 const FilterHeader: React.FC<FilterHeaderProps> = ({
@@ -22,12 +23,16 @@ const FilterHeader: React.FC<FilterHeaderProps> = ({
   onSort,
   sortDirection = null,
   className = '',
-  filterContent
+  filterContent,
+  onFilterApply
 }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const handleFilterClick = () => {
-    setIsFilterOpen(true);
+  const handleFilterApply = () => {
+    setIsFilterOpen(false);
+    if (onFilterApply) {
+      onFilterApply();
+    }
   };
 
   return (
@@ -62,13 +67,15 @@ const FilterHeader: React.FC<FilterHeaderProps> = ({
                 variant="ghost" 
                 size="sm" 
                 className="h-4 w-4 p-0 hover:bg-white/20"
-                onClick={handleFilterClick}
+                onClick={() => setIsFilterOpen(true)}
               >
                 <Filter className="w-2 h-2" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-4">
-              {filterContent}
+            <PopoverContent className="w-80 p-0" align="end">
+              {React.cloneElement(filterContent as React.ReactElement, { 
+                onFilterApply: handleFilterApply 
+              })}
             </PopoverContent>
           </Popover>
         )}
