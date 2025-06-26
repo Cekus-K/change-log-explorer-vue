@@ -400,19 +400,15 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
           </Alert>
         )}
 
-        {/* Active Filters */}
-        <ActiveFilters
-          filters={appliedFilters}
-          onRemoveFilter={handleRemoveFilter}
-          onClearAll={handleClearAllFilters}
-        />
-
-        {/* Action Buttons */}
-        <div className="flex justify-end items-center mb-4">
+        {/* Action Buttons and Active Filters */}
+        <div className="flex justify-between items-center mb-4">
+          <ActiveFilters
+            filters={appliedFilters}
+            onRemoveFilter={handleRemoveFilter}
+            onClearAll={handleClearAllFilters}
+          />
+          
           <div className="flex items-center gap-4">
-            
-            
-            
             <div className="flex gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>
