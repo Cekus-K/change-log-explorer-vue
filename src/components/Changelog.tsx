@@ -402,11 +402,13 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
 
         {/* Action Buttons and Active Filters */}
         <div className="flex justify-between items-center mb-4">
-          <ActiveFilters
-            filters={appliedFilters}
-            onRemoveFilter={handleRemoveFilter}
-            onClearAll={handleClearAllFilters}
-          />
+          <div className="flex-1">
+            <ActiveFilters
+              filters={appliedFilters}
+              onRemoveFilter={handleRemoveFilter}
+              onClearAll={handleClearAllFilters}
+            />
+          </div>
           
           <div className="flex items-center gap-4">
             <div className="flex gap-2">
