@@ -295,7 +295,7 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
                     <Button 
                       variant="outline"
                       disabled={selectedRows.size === 0 || hasRowsWithoutPrevious}
-                      className="disabled:opacity-50 bg-red-600 text-white hover:bg-red-700 border-red-600 disabled:bg-gray-300 disabled:text-gray-500 disabled:border-gray-300"
+                      className="bg-red-600 text-white hover:bg-red-700 border-red-600 disabled:bg-red-600 disabled:text-white disabled:border-red-600 disabled:opacity-50"
                     >
                       <X className="w-4 h-4 mr-2" />
                       Reject
