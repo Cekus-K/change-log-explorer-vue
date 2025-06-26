@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -19,42 +18,74 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [hoveredDate, setHoveredDate] = useState<Date | undefined>(undefined);
+  const [lastClickTime, setLastClickTime] = useState<number>(0);
+  const [lastClickedDate, setLastClickedDate] = useState<Date | undefined>(undefined);
 
   const handleDateSelect = (date: Date | undefined) => {
     if (!date) return;
 
-    if (!fromDate || (fromDate && toDate)) {
-      // Start new selection
+    const currentTime = Date.now();
+    const timeDiff = currentTime - lastClickTime;
+    const isDoubleClick = timeDiff < 300 && lastClickedDate && date.getTime() === lastClickedDate.getTime();
+
+    if (isDoubleClick) {
+      // Double-click: create a range from the clicked date to 7 days later
+      const endDate = new Date(date);
+      endDate.setDate(endDate.getDate() + 6); // 7-day range
+      
       setFromDate(date);
-      setToDate(undefined);
-      setHoveredDate(undefined);
-      if (onDateRangeChange) {
-        onDateRangeChange(date, undefined);
-      }
-    } else if (fromDate && !toDate) {
-      // Complete the range
-      if (date < fromDate) {
-        // If selected date is before start date, swap them
-        setFromDate(date);
-        setToDate(fromDate);
-        if (onDateRangeChange) {
-          onDateRangeChange(date, fromDate);
-        }
-      } else {
-        setToDate(date);
-        if (onDateRangeChange) {
-          onDateRangeChange(fromDate, date);
-        }
-      }
+      setToDate(endDate);
       setHoveredDate(undefined);
       
-      // Auto-apply when both dates are selected
+      if (onDateRangeChange) {
+        onDateRangeChange(date, endDate);
+      }
+      
+      // Auto-apply when range is created via double-click
       if (onFilterApply) {
         setTimeout(() => {
           onFilterApply();
         }, 100);
       }
+    } else {
+      // Single click: existing logic
+      if (!fromDate || (fromDate && toDate)) {
+        // Start new selection
+        setFromDate(date);
+        setToDate(undefined);
+        setHoveredDate(undefined);
+        if (onDateRangeChange) {
+          onDateRangeChange(date, undefined);
+        }
+      } else if (fromDate && !toDate) {
+        // Complete the range
+        if (date < fromDate) {
+          // If selected date is before start date, swap them
+          setFromDate(date);
+          setToDate(fromDate);
+          if (onDateRangeChange) {
+            onDateRangeChange(date, fromDate);
+          }
+        } else {
+          setToDate(date);
+          if (onDateRangeChange) {
+            onDateRangeChange(fromDate, date);
+          }
+        }
+        setHoveredDate(undefined);
+        
+        // Auto-apply when both dates are selected
+        if (onFilterApply) {
+          setTimeout(() => {
+            onFilterApply();
+          }, 100);
+        }
+      }
     }
+
+    // Update last click tracking
+    setLastClickTime(currentTime);
+    setLastClickedDate(date);
   };
 
   const handleDateHover = (date: Date | undefined) => {

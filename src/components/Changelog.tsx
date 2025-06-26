@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -70,7 +69,7 @@ const mockData: ChangelogEntry[] = [
   {
     id: '3',
     reservationDate: '2025-07-05',
-    createdDate: '2025-06-26 10:12:06',
+    createdDate: '2025-06-26 10:15:22',
     createdBy: 'System',
     action: 'RECOMMENDED',
     type: 'Rate',
@@ -83,17 +82,24 @@ const mockData: ChangelogEntry[] = [
     currentRate: 'LV5-520',
     description: 'Rate adjustment'
   },
-  // Additional mock data with proper rate/restriction values
+  // Additional mock data with proper date/time formatting
   ...Array.from({ length: 150 }, (_, i) => {
     const isRate = Math.random() > 0.5;
     const restrictionValues = ['OPEN', 'CLOSED', 'CTA', 'MINLOS 2'];
     const rateValue = `LV${Math.floor(Math.random() * 6) + 1}-${Math.floor(Math.random() * 500) + 100}`;
     const restrictionValue = restrictionValues[Math.floor(Math.random() * restrictionValues.length)];
     
+    // Generate proper date and time for created date
+    const randomDate = new Date(2025, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
+    const randomHour = Math.floor(Math.random() * 24);
+    const randomMinute = Math.floor(Math.random() * 60);
+    const randomSecond = Math.floor(Math.random() * 60);
+    const createdDateTime = `${randomDate.getFullYear()}-${String(randomDate.getMonth() + 1).padStart(2, '0')}-${String(randomDate.getDate()).padStart(2, '0')} ${String(randomHour).padStart(2, '0')}:${String(randomMinute).padStart(2, '0')}:${String(randomSecond).padStart(2, '0')}`;
+    
     return {
       id: `${i + 4}`,
       reservationDate: `2025-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
-      createdDate: `2025-06-26 ${String(Math.floor(Math.random() * 24)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
+      createdDate: createdDateTime,
       createdBy: ['System', 'John Doe', 'Jane Smith', 'Admin'][Math.floor(Math.random() * 4)],
       action: (Math.random() > 0.5 ? 'RECOMMENDED' : 'OVERRIDDEN') as 'RECOMMENDED' | 'OVERRIDDEN',
       type: (isRate ? 'Rate' : 'Restriction') as 'Rate' | 'Restriction',
