@@ -8,7 +8,7 @@ import Changelog from './Changelog';
 
 const ChangelogHistory = () => {
   const [activeTab, setActiveTab] = useState('prices');
-  const [showChangelog, setShowChangelog] = useState(false);
+  const [showChangelog, setShowChangelog] = useState(true); // Changed to true to show Changelog by default
   const [activeFilters, setActiveFilters] = useState<string[]>(['rates', 'restrictions']);
 
   const handleTabClick = (tabValue: string) => {

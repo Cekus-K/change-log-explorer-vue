@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -387,7 +388,7 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
                 <TableCell className="border-r border-gray-100">
                   <Badge 
                     variant={entry.action === 'RECOMMENDED' ? 'default' : 'secondary'}
-                    className={`${entry.action === 'RECOMMENDED' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'} text-xs font-medium`}
+                    className={`${entry.action === 'RECOMMENDED' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'} text-xs font-medium pointer-events-none`}
                     style={{ fontSize: '9px' }}
                   >
                     {entry.action}
