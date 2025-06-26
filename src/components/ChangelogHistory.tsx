@@ -9,28 +9,57 @@ import Changelog from './Changelog';
 const ChangelogHistory = () => {
   const [activeTab, setActiveTab] = useState('prices');
   const [showChangelog, setShowChangelog] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<string[]>(['rates', 'restrictions']);
+
+  const handleTabClick = (tabValue: string) => {
+    if (showChangelog) {
+      // For Changelog: toggleable behavior
+      if (tabValue === 'rates') {
+        setActiveFilters(prev => 
+          prev.includes('rates') 
+            ? prev.filter(f => f !== 'rates')
+            : [...prev, 'rates']
+        );
+      } else if (tabValue === 'restrictions') {
+        setActiveFilters(prev => 
+          prev.includes('restrictions') 
+            ? prev.filter(f => f !== 'restrictions')
+            : [...prev, 'restrictions']
+        );
+      }
+    } else {
+      // For Changelog History: alternating behavior
+      setActiveTab(tabValue);
+    }
+  };
 
   return (
     <div className="w-full max-w-7xl mx-auto p-6">
       <div className="bg-white rounded-xl shadow-lg border border-gray-200">
         <div className="border-b border-gray-200 bg-gray-50/50 rounded-t-xl">
           <div className="flex justify-between items-center px-6 py-4">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-              <TabsList className="h-14 p-0 bg-transparent rounded-none w-full justify-start">
-                <TabsTrigger
-                  value="prices"
-                  className="h-14 px-8 rounded-none border-b-2 border-transparent data-[state=active]:border-[#FF732D] data-[state=active]:bg-[#FF732D] data-[state=active]:text-white bg-transparent text-gray-600 hover:text-[#FF732D] hover:bg-gray-100/50 font-semibold text-sm transition-all duration-200"
-                >
-                  PRICES
-                </TabsTrigger>
-                <TabsTrigger
-                  value="restrictions"
-                  className="h-14 px-8 rounded-none border-b-2 border-transparent data-[state=active]:border-[#FF732D] data-[state=active]:bg-[#FF732D] data-[state=active]:text-white bg-transparent text-gray-600 hover:text-[#FF732D] hover:bg-gray-100/50 font-semibold text-sm transition-all duration-200"
-                >
-                  RESTRICTIONS
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="flex h-14">
+              <div
+                onClick={() => handleTabClick('prices')}
+                className={`h-14 px-8 rounded-none border-b-2 border-transparent cursor-pointer font-semibold text-sm transition-all duration-200 flex items-center ${
+                  (!showChangelog && activeTab === 'prices') || (showChangelog && activeFilters.includes('rates'))
+                    ? 'border-[#FF732D] bg-[#FF732D] text-white'
+                    : 'bg-transparent text-gray-600 hover:text-[#FF732D] hover:bg-gray-100/50'
+                }`}
+              >
+                {showChangelog ? 'RATES' : 'PRICES'}
+              </div>
+              <div
+                onClick={() => handleTabClick('restrictions')}
+                className={`h-14 px-8 rounded-none border-b-2 border-transparent cursor-pointer font-semibold text-sm transition-all duration-200 flex items-center ${
+                  (!showChangelog && activeTab === 'restrictions') || (showChangelog && activeFilters.includes('restrictions'))
+                    ? 'border-[#FF732D] bg-[#FF732D] text-white'
+                    : 'bg-transparent text-gray-600 hover:text-[#FF732D] hover:bg-gray-100/50'
+                }`}
+              >
+                RESTRICTIONS
+              </div>
+            </div>
             
             <Button
               onClick={() => setShowChangelog(!showChangelog)}
@@ -43,7 +72,7 @@ const ChangelogHistory = () => {
 
         {showChangelog ? (
           <div className="p-6">
-            <Changelog />
+            <Changelog activeFilters={activeFilters} />
           </div>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

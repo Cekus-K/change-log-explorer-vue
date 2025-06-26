@@ -4,9 +4,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Check, X } from 'lucide-react';
 import FilterHeader from './FilterHeader';
 import DateRangeFilter from './DateRangeFilter';
 import DropdownFilter from './DropdownFilter';
@@ -28,7 +28,7 @@ interface ChangelogEntry {
 }
 
 const mockData: ChangelogEntry[] = [
-  // Existing entries
+  // Existing entries with corrected values
   {
     id: '1',
     reservationDate: '2025-06-30',
@@ -36,9 +36,9 @@ const mockData: ChangelogEntry[] = [
     createdBy: 'System',
     action: 'RECOMMENDED',
     type: 'Rate',
-    rml: 'RML001',
-    groupType: 'Corporate',
-    roomType: 'Standard',
+    rml: 'A',
+    groupType: 'STD',
+    roomType: 'STD',
     systemReco: 'G6-450',
     previous: null,
     currentRate: 'G6-450',
@@ -51,9 +51,9 @@ const mockData: ChangelogEntry[] = [
     createdBy: 'System',
     action: 'RECOMMENDED',
     type: 'Rate',
-    rml: 'RML002',
-    groupType: 'Leisure',
-    roomType: 'Deluxe',
+    rml: 'B',
+    groupType: 'DLX',
+    roomType: 'DLX',
     systemReco: 'G6-450',
     previous: 'G5-400',
     currentRate: 'G6-450',
@@ -66,9 +66,9 @@ const mockData: ChangelogEntry[] = [
     createdBy: 'System',
     action: 'RECOMMENDED',
     type: 'Rate',
-    rml: 'RML003',
-    groupType: 'Corporate',
-    roomType: 'Suite',
+    rml: 'C',
+    groupType: 'SU',
+    roomType: 'SU',
     systemReco: 'G1-200',
     previous: null,
     currentRate: 'G1-200',
@@ -81,25 +81,25 @@ const mockData: ChangelogEntry[] = [
     createdBy: 'System',
     action: 'OVERRIDDEN',
     type: 'Restriction',
-    rml: 'RML004',
-    groupType: 'Group',
-    roomType: 'Standard',
+    rml: 'A',
+    groupType: 'STD',
+    roomType: 'STD',
     systemReco: 'G3-293',
     previous: 'G2-250',
     currentRate: 'G3-293',
     description: 'Restriction override'
   },
-  // Additional mock data for pagination testing
-  ...Array.from({ length: 50 }, (_, i) => ({
+  // Additional mock data with corrected types
+  ...Array.from({ length: 150 }, (_, i) => ({
     id: `${i + 5}`,
     reservationDate: `2025-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
     createdDate: `2025-06-26 ${String(Math.floor(Math.random() * 24)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
     createdBy: ['System', 'John Doe', 'Jane Smith', 'Admin'][Math.floor(Math.random() * 4)],
-    action: Math.random() > 0.5 ? 'RECOMMENDED' : 'OVERRIDDEN' as const,
-    type: Math.random() > 0.5 ? 'Rate' : 'Restriction' as const,
-    rml: `RML${String(Math.floor(Math.random() * 999) + 1).padStart(3, '0')}`,
-    groupType: ['Corporate', 'Leisure', 'Group'][Math.floor(Math.random() * 3)],
-    roomType: ['Standard', 'Deluxe', 'Suite', 'Premium'][Math.floor(Math.random() * 4)],
+    action: (Math.random() > 0.5 ? 'RECOMMENDED' : 'OVERRIDDEN') as 'RECOMMENDED' | 'OVERRIDDEN',
+    type: (Math.random() > 0.5 ? 'Rate' : 'Restriction') as 'Rate' | 'Restriction',
+    rml: ['A', 'B', 'C'][Math.floor(Math.random() * 3)],
+    groupType: ['STD', 'DLX', 'SU'][Math.floor(Math.random() * 3)],
+    roomType: ['STD', 'DLX', 'SU', 'PREM'][Math.floor(Math.random() * 4)],
     systemReco: `G${Math.floor(Math.random() * 6) + 1}-${Math.floor(Math.random() * 500) + 100}`,
     previous: Math.random() > 0.3 ? `G${Math.floor(Math.random() * 6) + 1}-${Math.floor(Math.random() * 500) + 100}` : null,
     currentRate: `G${Math.floor(Math.random() * 6) + 1}-${Math.floor(Math.random() * 500) + 100}`,
@@ -107,11 +107,14 @@ const mockData: ChangelogEntry[] = [
   }))
 ];
 
-const Changelog: React.FC = () => {
+interface ChangelogProps {
+  activeFilters: string[];
+}
+
+const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
   const [data, setData] = useState<ChangelogEntry[]>(mockData);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<string[]>(['rates', 'restrictions']);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: '', direction: null });
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -149,16 +152,6 @@ const Changelog: React.FC = () => {
       key,
       direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
     }));
-  };
-
-  const handleTabToggle = (value: string) => {
-    setActiveFilters(prev => {
-      if (prev.includes(value)) {
-        return prev.filter(f => f !== value);
-      } else {
-        return [...prev, value];
-      }
-    });
   };
 
   const handleRowSelect = (id: string, entry: ChangelogEntry) => {
@@ -227,16 +220,15 @@ const Changelog: React.FC = () => {
   ];
 
   const rmlOptions = [
-    { value: 'rml001', label: 'RML001' },
-    { value: 'rml002', label: 'RML002' },
-    { value: 'rml003', label: 'RML003' },
-    { value: 'rml004', label: 'RML004' }
+    { value: 'a', label: 'A' },
+    { value: 'b', label: 'B' },
+    { value: 'c', label: 'C' }
   ];
 
   const groupTypeOptions = [
-    { value: 'corporate', label: 'Corporate' },
-    { value: 'leisure', label: 'Leisure' },
-    { value: 'group', label: 'Group' }
+    { value: 'std', label: 'STD' },
+    { value: 'dlx', label: 'DLX' },
+    { value: 'su', label: 'SU' }
   ];
 
   return (
@@ -250,43 +242,22 @@ const Changelog: React.FC = () => {
         </Alert>
       )}
 
-      {/* Filter Tabs */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex">
-          <div
-            onClick={() => handleTabToggle('rates')}
-            className={`h-14 px-8 rounded-none border-b-2 border-transparent cursor-pointer font-semibold text-sm transition-all duration-200 flex items-center ${
-              activeFilters.includes('rates')
-                ? 'border-[#FF732D] bg-[#FF732D] text-white'
-                : 'bg-transparent text-gray-600 hover:text-[#FF732D] hover:bg-gray-100/50'
-            }`}
-          >
-            RATES
-          </div>
-          <div
-            onClick={() => handleTabToggle('restrictions')}
-            className={`h-14 px-8 rounded-none border-b-2 border-transparent cursor-pointer font-semibold text-sm transition-all duration-200 flex items-center ${
-              activeFilters.includes('restrictions')
-                ? 'border-[#FF732D] bg-[#FF732D] text-white'
-                : 'bg-transparent text-gray-600 hover:text-[#FF732D] hover:bg-gray-100/50'
-            }`}
-          >
-            RESTRICTIONS
-          </div>
-        </div>
-        
+      {/* Action Buttons */}
+      <div className="flex justify-end items-center mb-4">
         <div className="flex gap-2">
           <Button 
             variant="outline"
             disabled={selectedRows.size === 0 || hasRowsWithoutPrevious}
-            className="disabled:opacity-50 border-red-500 text-red-600 hover:bg-red-50 hover:text-red-700"
+            className="disabled:opacity-50 bg-red-600 text-white hover:bg-red-700 border-red-600"
           >
+            <X className="w-4 h-4 mr-2" />
             Reject
           </Button>
           <Button 
             disabled={selectedRows.size === 0}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
+            <Check className="w-4 h-4 mr-2" />
             Accept
           </Button>
         </div>
