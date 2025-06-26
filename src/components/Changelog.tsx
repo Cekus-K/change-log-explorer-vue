@@ -128,10 +128,9 @@ interface Filter {
 
 interface ChangelogProps {
   activeFilters: string[];
-  onFiltersChange?: (filters: string[]) => void;
 }
 
-const Changelog: React.FC<ChangelogProps> = ({ activeFilters, onFiltersChange }) => {
+const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
   const [data, setData] = useState<ChangelogEntry[]>(mockData);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
@@ -151,24 +150,15 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters, onFiltersChange })
     groupType?: string;
   }>({});
 
-  // Ensure at least one filter is always selected
-  useEffect(() => {
-    if (activeFilters.length === 0 && onFiltersChange) {
-      onFiltersChange(['rates', 'restrictions']);
-    }
-  }, [activeFilters, onFiltersChange]);
-
   const applyFilters = (data: ChangelogEntry[]) => {
     let filtered = [...data];
 
-    // Apply type filters (rates/restrictions) - ensure at least one is selected
-    const effectiveFilters = activeFilters.length === 0 ? ['rates', 'restrictions'] : activeFilters;
-    
-    if (effectiveFilters.length > 0) {
+    // Apply type filters (rates/restrictions)
+    if (activeFilters.length > 0) {
       filtered = filtered.filter(item => {
-        if (effectiveFilters.includes('rates') && effectiveFilters.includes('restrictions')) return true;
-        if (effectiveFilters.includes('rates') && item.type === 'Rate') return true;
-        if (effectiveFilters.includes('restrictions') && item.type === 'Restriction') return true;
+        if (activeFilters.includes('rates') && activeFilters.includes('restrictions')) return true;
+        if (activeFilters.includes('rates') && item.type === 'Rate') return true;
+        if (activeFilters.includes('restrictions') && item.type === 'Restriction') return true;
         return false;
       });
     }
