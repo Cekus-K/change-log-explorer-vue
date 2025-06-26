@@ -276,17 +276,8 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
         {/* Action Buttons */}
         <div className="flex justify-end items-center mb-4">
           <div className="flex items-center gap-4">
-            {/* Informational Messages */}
-            {hasRowsWithoutPrevious && autoSelectedRows.size > 0 && (
-              <span className="text-sm text-gray-600">
-                There are other entries for selected reservation dates that will be accepted on a mandatory basis.
-              </span>
-            )}
-            {hasRowsWithoutPrevious && hasHiddenEntriesWithoutPrevious() && (
-              <span className="text-sm text-gray-600">
-                There may be other entries from the same reservation date that will be accepted on a mandatory basis if they do not have a previous.
-              </span>
-            )}
+            
+            
             
             <div className="flex gap-2">
               <Tooltip>
