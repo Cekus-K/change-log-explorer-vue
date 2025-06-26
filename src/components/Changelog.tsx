@@ -11,6 +11,7 @@ import { Check, X } from 'lucide-react';
 import FilterHeader from './FilterHeader';
 import DateRangeFilter from './DateRangeFilter';
 import DropdownFilter from './DropdownFilter';
+import ActiveFilters from './ActiveFilters';
 
 interface ChangelogEntry {
   id: string;
@@ -112,6 +113,12 @@ const mockData: ChangelogEntry[] = [
   })
 ];
 
+interface Filter {
+  id: string;
+  label: string;
+  value: string;
+}
+
 interface ChangelogProps {
   activeFilters: string[];
 }
@@ -124,13 +131,71 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [autoSelectedRows, setAutoSelectedRows] = useState<Set<string>>(new Set());
+  const [appliedFilters, setAppliedFilters] = useState<Filter[]>([]);
+  const [dateFilters, setDateFilters] = useState<{
+    reservationDate?: { from?: Date; to?: Date };
+    createdDate?: { from?: Date; to?: Date };
+  }>({});
+  const [columnFilters, setColumnFilters] = useState<{
+    createdBy?: string;
+    action?: string;
+    rml?: string;
+    groupType?: string;
+  }>({});
 
-  const filteredData = data.filter(item => {
-    if (activeFilters.includes('rates') && activeFilters.includes('restrictions')) return true;
-    if (activeFilters.includes('rates') && item.type === 'Rate') return true;
-    if (activeFilters.includes('restrictions') && item.type === 'Restriction') return true;
-    return false;
-  });
+  const applyFilters = (data: ChangelogEntry[]) => {
+    let filtered = [...data];
+
+    // Apply type filters (rates/restrictions)
+    if (activeFilters.length > 0) {
+      filtered = filtered.filter(item => {
+        if (activeFilters.includes('rates') && activeFilters.includes('restrictions')) return true;
+        if (activeFilters.includes('rates') && item.type === 'Rate') return true;
+        if (activeFilters.includes('restrictions') && item.type === 'Restriction') return true;
+        return false;
+      });
+    }
+
+    // Apply date filters
+    if (dateFilters.reservationDate?.from || dateFilters.reservationDate?.to) {
+      filtered = filtered.filter(item => {
+        const itemDate = new Date(item.reservationDate);
+        if (dateFilters.reservationDate?.from && itemDate < dateFilters.reservationDate.from) return false;
+        if (dateFilters.reservationDate?.to && itemDate > dateFilters.reservationDate.to) return false;
+        return true;
+      });
+    }
+
+    if (dateFilters.createdDate?.from || dateFilters.createdDate?.to) {
+      filtered = filtered.filter(item => {
+        const itemDate = new Date(item.createdDate);
+        if (dateFilters.createdDate?.from && itemDate < dateFilters.createdDate.from) return false;
+        if (dateFilters.createdDate?.to && itemDate > dateFilters.createdDate.to) return false;
+        return true;
+      });
+    }
+
+    // Apply column filters
+    if (columnFilters.createdBy) {
+      filtered = filtered.filter(item => item.createdBy.toLowerCase().includes(columnFilters.createdBy!.toLowerCase()));
+    }
+
+    if (columnFilters.action) {
+      filtered = filtered.filter(item => item.action.toLowerCase() === columnFilters.action!.toLowerCase());
+    }
+
+    if (columnFilters.rml) {
+      filtered = filtered.filter(item => item.rml.toLowerCase() === columnFilters.rml!.toLowerCase());
+    }
+
+    if (columnFilters.groupType) {
+      filtered = filtered.filter(item => item.groupType.toLowerCase() === columnFilters.groupType!.toLowerCase());
+    }
+
+    return filtered;
+  };
+
+  const filteredData = applyFilters(data);
 
   const sortedData = [...filteredData].sort((a, b) => {
     if (!sortConfig.key || !sortConfig.direction) return 0;
@@ -213,7 +278,6 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
     return entry && !entry.previous;
   });
 
-  // Check if we have entries without previous that may not be visible due to filtering
   const hasHiddenEntriesWithoutPrevious = () => {
     const selectedRowsWithoutPrevious = Array.from(selectedRows).filter(id => {
       const entry = data.find(item => item.id === id);
@@ -261,6 +325,69 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
     { value: 'su', label: 'SU' }
   ];
 
+  const handleDateRangeChange = (column: 'reservationDate' | 'createdDate', from: Date | undefined, to: Date | undefined) => {
+    setDateFilters(prev => ({
+      ...prev,
+      [column]: { from, to }
+    }));
+    
+    if (from || to) {
+      const newFilter: Filter = {
+        id: `${column}-${Date.now()}`,
+        label: column === 'reservationDate' ? 'Reservation Date' : 'Created Date',
+        value: `${from?.toDateString() || '...'} - ${to?.toDateString() || '...'}`
+      };
+      setAppliedFilters(prev => [...prev.filter(f => !f.id.startsWith(column)), newFilter]);
+    } else {
+      setAppliedFilters(prev => prev.filter(f => !f.id.startsWith(column)));
+    }
+  };
+
+  const handleColumnFilterChange = (column: keyof typeof columnFilters, value: string) => {
+    setColumnFilters(prev => ({
+      ...prev,
+      [column]: value
+    }));
+
+    const filterLabels = {
+      createdBy: 'Created By',
+      action: 'Action',
+      rml: 'RML',
+      groupType: 'Group Type'
+    };
+
+    const newFilter: Filter = {
+      id: `${column}-${Date.now()}`,
+      label: filterLabels[column],
+      value: value.toUpperCase()
+    };
+    setAppliedFilters(prev => [...prev.filter(f => !f.id.startsWith(column)), newFilter]);
+  };
+
+  const handleRemoveFilter = (filterId: string) => {
+    const filterType = filterId.split('-')[0];
+    
+    if (filterType === 'reservationDate' || filterType === 'createdDate') {
+      setDateFilters(prev => ({
+        ...prev,
+        [filterType]: {}
+      }));
+    } else {
+      setColumnFilters(prev => ({
+        ...prev,
+        [filterType]: undefined
+      }));
+    }
+    
+    setAppliedFilters(prev => prev.filter(f => f.id !== filterId));
+  };
+
+  const handleClearAllFilters = () => {
+    setDateFilters({});
+    setColumnFilters({});
+    setAppliedFilters([]);
+  };
+
   return (
     <TooltipProvider>
       <div className="w-full space-y-6">
@@ -272,6 +399,13 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
             </AlertDescription>
           </Alert>
         )}
+
+        {/* Active Filters */}
+        <ActiveFilters
+          filters={appliedFilters}
+          onRemoveFilter={handleRemoveFilter}
+          onClearAll={handleClearAllFilters}
+        />
 
         {/* Action Buttons */}
         <div className="flex justify-end items-center mb-4">
@@ -330,7 +464,11 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
                   onSort={() => handleSort('reservationDate')}
                   sortDirection={sortConfig.key === 'reservationDate' ? sortConfig.direction : null}
                   className="text-gray-700 font-semibold border-r border-gray-200"
-                  filterContent={<DateRangeFilter />}
+                  filterContent={
+                    <DateRangeFilter 
+                      onDateRangeChange={(from, to) => handleDateRangeChange('reservationDate', from, to)}
+                    />
+                  }
                 />
                 
                 <FilterHeader
@@ -340,7 +478,11 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
                   onSort={() => handleSort('createdDate')}
                   sortDirection={sortConfig.key === 'createdDate' ? sortConfig.direction : null}
                   className="text-gray-700 font-semibold border-r border-gray-200"
-                  filterContent={<DateRangeFilter />}
+                  filterContent={
+                    <DateRangeFilter 
+                      onDateRangeChange={(from, to) => handleDateRangeChange('createdDate', from, to)}
+                    />
+                  }
                 />
                 
                 <FilterHeader
@@ -350,7 +492,13 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
                   onSort={() => handleSort('createdBy')}
                   sortDirection={sortConfig.key === 'createdBy' ? sortConfig.direction : null}
                   className="text-gray-700 font-semibold border-r border-gray-200"
-                  filterContent={<DropdownFilter options={createdByOptions} placeholder="Select creator" />}
+                  filterContent={
+                    <DropdownFilter 
+                      options={createdByOptions} 
+                      placeholder="Select creator"
+                      onValueChange={(value) => handleColumnFilterChange('createdBy', value)}
+                    />
+                  }
                 />
                 
                 <FilterHeader
@@ -360,7 +508,13 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
                   onSort={() => handleSort('action')}
                   sortDirection={sortConfig.key === 'action' ? sortConfig.direction : null}
                   className="text-gray-700 font-semibold border-r border-gray-200"
-                  filterContent={<DropdownFilter options={actionOptions} placeholder="Select action" />}
+                  filterContent={
+                    <DropdownFilter 
+                      options={actionOptions} 
+                      placeholder="Select action"
+                      onValueChange={(value) => handleColumnFilterChange('action', value)}
+                    />
+                  }
                 />
                 
                 <TableHead className="text-gray-700 font-semibold border-r border-gray-200" style={{ fontSize: '10px' }}>Rate & Restriction</TableHead>
@@ -372,7 +526,13 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
                   onSort={() => handleSort('rml')}
                   sortDirection={sortConfig.key === 'rml' ? sortConfig.direction : null}
                   className="text-gray-700 font-semibold border-r border-gray-200"
-                  filterContent={<DropdownFilter options={rmlOptions} placeholder="Select RML" />}
+                  filterContent={
+                    <DropdownFilter 
+                      options={rmlOptions} 
+                      placeholder="Select RML"
+                      onValueChange={(value) => handleColumnFilterChange('rml', value)}
+                    />
+                  }
                 />
                 
                 <FilterHeader
@@ -382,7 +542,13 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
                   onSort={() => handleSort('groupType')}
                   sortDirection={sortConfig.key === 'groupType' ? sortConfig.direction : null}
                   className="text-gray-700 font-semibold border-r border-gray-200"
-                  filterContent={<DropdownFilter options={groupTypeOptions} placeholder="Select group type" />}
+                  filterContent={
+                    <DropdownFilter 
+                      options={groupTypeOptions} 
+                      placeholder="Select group type"
+                      onValueChange={(value) => handleColumnFilterChange('groupType', value)}
+                    />
+                  }
                 />
                 
                 <TableHead className="text-gray-700 font-semibold border-r border-gray-200" style={{ fontSize: '10px' }}>Room Type</TableHead>
