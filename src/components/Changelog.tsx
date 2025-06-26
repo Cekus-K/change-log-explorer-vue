@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -129,7 +130,7 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
   const [selectAll, setSelectAll] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: '', direction: null });
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(10);
   const [autoSelectedRows, setAutoSelectedRows] = useState<Set<string>>(new Set());
   const [appliedFilters, setAppliedFilters] = useState<Filter[]>([]);
   const [dateFilters, setDateFilters] = useState<{
