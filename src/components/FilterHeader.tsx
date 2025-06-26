@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { TableHead } from '@/components/ui/table';
+import { ArrowUp, ArrowDown, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronUp, ChevronDown, Filter } from 'lucide-react';
 
 interface FilterHeaderProps {
   title: string;
@@ -13,6 +13,7 @@ interface FilterHeaderProps {
   sortDirection?: 'asc' | 'desc' | null;
   className?: string;
   filterContent?: React.ReactNode;
+  onFilterApply?: () => void;
 }
 
 const FilterHeader: React.FC<FilterHeaderProps> = ({
@@ -20,45 +21,65 @@ const FilterHeader: React.FC<FilterHeaderProps> = ({
   sortable = false,
   filterable = false,
   onSort,
-  sortDirection,
-  className,
-  filterContent
+  sortDirection = null,
+  className = '',
+  filterContent,
+  onFilterApply
 }) => {
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const handleFilterApply = () => {
+    setIsFilterOpen(false);
+    if (onFilterApply) {
+      onFilterApply();
+    }
+  };
+
+  const handleFilterClick = () => {
+    setIsFilterOpen(true);
+  };
+
   return (
     <TableHead className={className} style={{ fontSize: '10px' }}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-1">
-          <span>{title}</span>
-          {sortable && (
-            <Button
-              variant="ghost"
-              size="sm"
+          {sortable ? (
+            <button
               onClick={onSort}
-              className="h-6 w-6 p-0 hover:bg-gray-200"
+              className="flex items-center space-x-1 hover:opacity-80 transition-opacity"
+              style={{ fontSize: '10px' }}
             >
-              {sortDirection === 'asc' ? (
-                <ChevronUp className="h-3 w-3" />
-              ) : sortDirection === 'desc' ? (
-                <ChevronDown className="h-3 w-3" />
-              ) : (
-                <div className="h-3 w-3" />
+              <span>{title}</span>
+              {sortDirection === 'asc' && <ArrowUp className="w-3 h-3" />}
+              {sortDirection === 'desc' && <ArrowDown className="w-3 h-3" />}
+              {!sortDirection && (
+                <div className="flex flex-col">
+                  <ArrowUp className="w-2 h-2 opacity-30" />
+                  <ArrowDown className="w-2 h-2 opacity-30 -mt-0.5" />
+                </div>
               )}
-            </Button>
+            </button>
+          ) : (
+            <span style={{ fontSize: '10px' }}>{title}</span>
           )}
         </div>
-        {filterable && (
-          <Popover>
+        
+        {filterable && filterContent && (
+          <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
             <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 hover:bg-gray-200"
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-4 w-4 p-0 hover:bg-white/20"
+                onClick={handleFilterClick}
               >
-                <Filter className="h-3 w-3" />
+                <Filter className="w-2 h-2" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-64">
-              {filterContent}
+            <PopoverContent className="w-80 p-0" align="end">
+              {React.cloneElement(filterContent as React.ReactElement, { 
+                onFilterApply: handleFilterApply 
+              })}
             </PopoverContent>
           </Popover>
         )}
