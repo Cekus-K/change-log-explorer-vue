@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -7,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Check, X } from 'lucide-react';
 import FilterHeader from './FilterHeader';
 import DateRangeFilter from './DateRangeFilter';
@@ -30,7 +30,7 @@ interface ChangelogEntry {
 }
 
 const mockData: ChangelogEntry[] = [
-  // Rate entries with price levels (LV prefix)
+  // Rate entry without previous at the top
   {
     id: '1',
     reservationDate: '2025-06-30',
@@ -47,8 +47,26 @@ const mockData: ChangelogEntry[] = [
     currentRate: 'LV4-450',
     description: 'Rate update'
   },
+  // Restriction entry without previous at the top
   {
     id: '2',
+    reservationDate: '2025-06-30',
+    createdDate: '2025-06-26 10:12:06',
+    createdBy: 'System',
+    action: 'RECOMMENDED',
+    type: 'Restriction',
+    rateRestriction: 'CLOSED',
+    rml: 'A',
+    groupType: 'STD',
+    roomType: 'STD01',
+    systemReco: 'CLOSED',
+    previous: null,
+    currentRate: 'CLOSED',
+    description: 'Restriction update'
+  },
+  // Rate entry with previous
+  {
+    id: '3',
     reservationDate: '2025-07-05',
     createdDate: '2025-06-26 10:12:06',
     createdBy: 'System',
@@ -63,39 +81,6 @@ const mockData: ChangelogEntry[] = [
     currentRate: 'LV5-520',
     description: 'Rate adjustment'
   },
-  {
-    id: '3',
-    reservationDate: '2025-07-19',
-    createdDate: '2025-06-26 10:12:06',
-    createdBy: 'System',
-    action: 'RECOMMENDED',
-    type: 'Rate',
-    rateRestriction: 'LV2-300',
-    rml: 'C',
-    groupType: 'SU',
-    roomType: 'SU03',
-    systemReco: 'LV2-300',
-    previous: null,
-    currentRate: 'LV2-300',
-    description: 'New rate'
-  },
-  // Restriction entries with restriction values
-  {
-    id: '4',
-    reservationDate: '2025-06-26',
-    createdDate: '2025-06-26 10:12:06',
-    createdBy: 'System',
-    action: 'OVERRIDDEN',
-    type: 'Restriction',
-    rateRestriction: 'CLOSED',
-    rml: 'A',
-    groupType: 'STD',
-    roomType: 'STD01',
-    systemReco: 'CLOSED',
-    previous: 'OPEN',
-    currentRate: 'CLOSED',
-    description: 'Restriction override'
-  },
   // Additional mock data with proper rate/restriction values
   ...Array.from({ length: 150 }, (_, i) => {
     const isRate = Math.random() > 0.5;
@@ -104,7 +89,7 @@ const mockData: ChangelogEntry[] = [
     const restrictionValue = restrictionValues[Math.floor(Math.random() * restrictionValues.length)];
     
     return {
-      id: `${i + 5}`,
+      id: `${i + 4}`,
       reservationDate: `2025-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
       createdDate: `2025-06-26 ${String(Math.floor(Math.random() * 24)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
       createdBy: ['System', 'John Doe', 'Jane Smith', 'Admin'][Math.floor(Math.random() * 4)],
@@ -228,6 +213,31 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
     return entry && !entry.previous;
   });
 
+  // Check if we have entries without previous that may not be visible due to filtering
+  const hasHiddenEntriesWithoutPrevious = () => {
+    const selectedRowsWithoutPrevious = Array.from(selectedRows).filter(id => {
+      const entry = data.find(item => item.id === id);
+      return entry && !entry.previous;
+    });
+
+    if (selectedRowsWithoutPrevious.length === 0) return false;
+
+    // Get all reservation dates from selected rows without previous
+    const reservationDates = new Set(
+      selectedRowsWithoutPrevious.map(id => {
+        const entry = data.find(item => item.id === id);
+        return entry?.reservationDate;
+      })
+    );
+
+    // Check if there are entries for the same dates that are not visible due to filtering
+    return Array.from(reservationDates).some(date => {
+      const allEntriesForDate = data.filter(item => item.reservationDate === date && !item.previous);
+      const visibleEntriesForDate = filteredData.filter(item => item.reservationDate === date && !item.previous);
+      return allEntriesForDate.length > visibleEntriesForDate.length;
+    });
+  };
+
   const createdByOptions = [
     { value: 'system', label: 'System' },
     { value: 'user', label: 'User' },
@@ -252,211 +262,238 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
   ];
 
   return (
-    <div className="w-full space-y-6">
-      {/* Warning Alert */}
-      {hasRowsWithoutPrevious && autoSelectedRows.size > 0 && (
-        <Alert className="border-yellow-500 bg-yellow-50">
-          <AlertDescription className="text-yellow-800">
-            There are other entries for selected reservation dates that will be accepted on a mandatory basis.
-          </AlertDescription>
-        </Alert>
-      )}
+    <TooltipProvider>
+      <div className="w-full space-y-6">
+        {/* Warning Alert */}
+        {hasRowsWithoutPrevious && autoSelectedRows.size > 0 && (
+          <Alert className="border-yellow-500 bg-yellow-50">
+            <AlertDescription className="text-yellow-800">
+              There are other entries for selected reservation dates that will be accepted on a mandatory basis.
+            </AlertDescription>
+          </Alert>
+        )}
 
-      {/* Action Buttons */}
-      <div className="flex justify-end items-center mb-4">
-        <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            disabled={selectedRows.size === 0 || hasRowsWithoutPrevious}
-            className="disabled:opacity-50 bg-red-600 text-white hover:bg-red-700 border-red-600"
-          >
-            <X className="w-4 h-4 mr-2" />
-            Reject
-          </Button>
-          <Button 
-            disabled={selectedRows.size === 0}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            <Check className="w-4 h-4 mr-2" />
-            Accept
-          </Button>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-        <Table>
-          <TableHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-            <TableRow>
-              <TableHead className="w-12 text-gray-700 font-semibold border-r border-gray-200">
-                <Checkbox 
-                  checked={selectAll}
-                  onCheckedChange={handleSelectAll}
-                  className="data-[state=checked]:bg-[#FF732D] data-[state=checked]:border-[#FF732D]"
-                />
-              </TableHead>
-              
-              <FilterHeader
-                title="Reservation Date"
-                sortable
-                filterable
-                onSort={() => handleSort('reservationDate')}
-                sortDirection={sortConfig.key === 'reservationDate' ? sortConfig.direction : null}
-                className="text-gray-700 font-semibold border-r border-gray-200"
-                filterContent={<DateRangeFilter />}
-              />
-              
-              <FilterHeader
-                title="Created Date"
-                sortable
-                filterable
-                onSort={() => handleSort('createdDate')}
-                sortDirection={sortConfig.key === 'createdDate' ? sortConfig.direction : null}
-                className="text-gray-700 font-semibold border-r border-gray-200"
-                filterContent={<DateRangeFilter />}
-              />
-              
-              <FilterHeader
-                title="Created By"
-                sortable
-                filterable
-                onSort={() => handleSort('createdBy')}
-                sortDirection={sortConfig.key === 'createdBy' ? sortConfig.direction : null}
-                className="text-gray-700 font-semibold border-r border-gray-200"
-                filterContent={<DropdownFilter options={createdByOptions} placeholder="Select creator" />}
-              />
-              
-              <FilterHeader
-                title="Action"
-                sortable
-                filterable
-                onSort={() => handleSort('action')}
-                sortDirection={sortConfig.key === 'action' ? sortConfig.direction : null}
-                className="text-gray-700 font-semibold border-r border-gray-200"
-                filterContent={<DropdownFilter options={actionOptions} placeholder="Select action" />}
-              />
-              
-              <TableHead className="text-gray-700 font-semibold border-r border-gray-200" style={{ fontSize: '10px' }}>Rate & Restriction</TableHead>
-              
-              <FilterHeader
-                title="RML"
-                sortable
-                filterable
-                onSort={() => handleSort('rml')}
-                sortDirection={sortConfig.key === 'rml' ? sortConfig.direction : null}
-                className="text-gray-700 font-semibold border-r border-gray-200"
-                filterContent={<DropdownFilter options={rmlOptions} placeholder="Select RML" />}
-              />
-              
-              <FilterHeader
-                title="Group Type"
-                sortable
-                filterable
-                onSort={() => handleSort('groupType')}
-                sortDirection={sortConfig.key === 'groupType' ? sortConfig.direction : null}
-                className="text-gray-700 font-semibold border-r border-gray-200"
-                filterContent={<DropdownFilter options={groupTypeOptions} placeholder="Select group type" />}
-              />
-              
-              <TableHead className="text-gray-700 font-semibold border-r border-gray-200" style={{ fontSize: '10px' }}>Room Type</TableHead>
-              <TableHead className="text-gray-700 font-semibold border-r border-gray-200" style={{ fontSize: '10px' }}>System RECO</TableHead>
-              <TableHead className="text-gray-700 font-semibold" style={{ fontSize: '10px' }}>Previous</TableHead>
-            </TableRow>
-          </TableHeader>
-          
-          <TableBody>
-            {paginatedData.map((entry, index) => (
-              <TableRow 
-                key={entry.id}
-                className={`
-                  ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}
-                  ${selectedRows.has(entry.id) ? 'bg-blue-50' : ''}
-                  ${autoSelectedRows.has(entry.id) ? 'bg-yellow-50' : ''}
-                  hover:bg-blue-50/50 border-b border-gray-100 last:border-b-0
-                `}
+        {/* Action Buttons */}
+        <div className="flex justify-end items-center mb-4">
+          <div className="flex items-center gap-4">
+            {/* Informational Messages */}
+            {hasRowsWithoutPrevious && autoSelectedRows.size > 0 && (
+              <span className="text-sm text-gray-600">
+                There are other entries for selected reservation dates that will be accepted on a mandatory basis.
+              </span>
+            )}
+            {hasRowsWithoutPrevious && hasHiddenEntriesWithoutPrevious() && (
+              <span className="text-sm text-gray-600">
+                There may be other entries from the same reservation date that will be accepted on a mandatory basis if they do not have a previous.
+              </span>
+            )}
+            
+            <div className="flex gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button 
+                      variant="outline"
+                      disabled={selectedRows.size === 0 || hasRowsWithoutPrevious}
+                      className="disabled:opacity-50 bg-red-600 text-white hover:bg-red-700 border-red-600 disabled:bg-gray-300 disabled:text-gray-500 disabled:border-gray-300"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Reject
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {hasRowsWithoutPrevious && (
+                  <TooltipContent>
+                    <p>Entries without previous cannot be rejected</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+              <Button 
+                disabled={selectedRows.size === 0}
+                className="bg-green-600 hover:bg-green-700 text-white"
               >
-                <TableCell className="border-r border-gray-100">
+                <Check className="w-4 h-4 mr-2" />
+                Accept
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+          <Table>
+            <TableHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+              <TableRow>
+                <TableHead className="w-12 text-gray-700 font-semibold border-r border-gray-200">
                   <Checkbox 
-                    checked={selectedRows.has(entry.id)}
-                    onCheckedChange={() => handleRowSelect(entry.id, entry)}
+                    checked={selectAll}
+                    onCheckedChange={handleSelectAll}
                     className="data-[state=checked]:bg-[#FF732D] data-[state=checked]:border-[#FF732D]"
                   />
-                </TableCell>
-                <TableCell className="font-medium border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.reservationDate}</TableCell>
-                <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.createdDate}</TableCell>
-                <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.createdBy}</TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <Badge 
-                    variant={entry.action === 'RECOMMENDED' ? 'default' : 'secondary'}
-                    className={`${entry.action === 'RECOMMENDED' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'} text-xs font-medium pointer-events-none`}
-                    style={{ fontSize: '9px' }}
-                  >
-                    {entry.action}
-                  </Badge>
-                </TableCell>
-                <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.rateRestriction}</TableCell>
-                <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.rml}</TableCell>
-                <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.groupType}</TableCell>
-                <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.roomType}</TableCell>
-                <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.systemReco}</TableCell>
-                <TableCell style={{ fontSize: '10px' }}>{entry.previous || '-'}</TableCell>
+                </TableHead>
+                
+                <FilterHeader
+                  title="Reservation Date"
+                  sortable
+                  filterable
+                  onSort={() => handleSort('reservationDate')}
+                  sortDirection={sortConfig.key === 'reservationDate' ? sortConfig.direction : null}
+                  className="text-gray-700 font-semibold border-r border-gray-200"
+                  filterContent={<DateRangeFilter />}
+                />
+                
+                <FilterHeader
+                  title="Created Date"
+                  sortable
+                  filterable
+                  onSort={() => handleSort('createdDate')}
+                  sortDirection={sortConfig.key === 'createdDate' ? sortConfig.direction : null}
+                  className="text-gray-700 font-semibold border-r border-gray-200"
+                  filterContent={<DateRangeFilter />}
+                />
+                
+                <FilterHeader
+                  title="Created By"
+                  sortable
+                  filterable
+                  onSort={() => handleSort('createdBy')}
+                  sortDirection={sortConfig.key === 'createdBy' ? sortConfig.direction : null}
+                  className="text-gray-700 font-semibold border-r border-gray-200"
+                  filterContent={<DropdownFilter options={createdByOptions} placeholder="Select creator" />}
+                />
+                
+                <FilterHeader
+                  title="Action"
+                  sortable
+                  filterable
+                  onSort={() => handleSort('action')}
+                  sortDirection={sortConfig.key === 'action' ? sortConfig.direction : null}
+                  className="text-gray-700 font-semibold border-r border-gray-200"
+                  filterContent={<DropdownFilter options={actionOptions} placeholder="Select action" />}
+                />
+                
+                <TableHead className="text-gray-700 font-semibold border-r border-gray-200" style={{ fontSize: '10px' }}>Rate & Restriction</TableHead>
+                
+                <FilterHeader
+                  title="RML"
+                  sortable
+                  filterable
+                  onSort={() => handleSort('rml')}
+                  sortDirection={sortConfig.key === 'rml' ? sortConfig.direction : null}
+                  className="text-gray-700 font-semibold border-r border-gray-200"
+                  filterContent={<DropdownFilter options={rmlOptions} placeholder="Select RML" />}
+                />
+                
+                <FilterHeader
+                  title="Group Type"
+                  sortable
+                  filterable
+                  onSort={() => handleSort('groupType')}
+                  sortDirection={sortConfig.key === 'groupType' ? sortConfig.direction : null}
+                  className="text-gray-700 font-semibold border-r border-gray-200"
+                  filterContent={<DropdownFilter options={groupTypeOptions} placeholder="Select group type" />}
+                />
+                
+                <TableHead className="text-gray-700 font-semibold border-r border-gray-200" style={{ fontSize: '10px' }}>Room Type</TableHead>
+                <TableHead className="text-gray-700 font-semibold border-r border-gray-200" style={{ fontSize: '10px' }}>System RECO</TableHead>
+                <TableHead className="text-gray-700 font-semibold" style={{ fontSize: '10px' }}>Previous</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex items-center justify-between bg-white px-4 py-3 rounded-lg shadow border border-gray-200">
-        <div className="flex items-center space-x-2">
-          <span className="text-xs text-gray-700">Show</span>
-          <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
-            <SelectTrigger className="w-16 h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-            </SelectContent>
-          </Select>
-          <span className="text-xs text-gray-700">entries</span>
+            </TableHeader>
+            
+            <TableBody>
+              {paginatedData.map((entry, index) => (
+                <TableRow 
+                  key={entry.id}
+                  className={`
+                    ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}
+                    ${selectedRows.has(entry.id) ? 'bg-blue-50' : ''}
+                    ${autoSelectedRows.has(entry.id) ? 'bg-yellow-50' : ''}
+                    hover:bg-blue-50/50 border-b border-gray-100 last:border-b-0
+                  `}
+                >
+                  <TableCell className="border-r border-gray-100">
+                    <Checkbox 
+                      checked={selectedRows.has(entry.id)}
+                      onCheckedChange={() => handleRowSelect(entry.id, entry)}
+                      className="data-[state=checked]:bg-[#FF732D] data-[state=checked]:border-[#FF732D]"
+                    />
+                  </TableCell>
+                  <TableCell className="font-medium border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.reservationDate}</TableCell>
+                  <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.createdDate}</TableCell>
+                  <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.createdBy}</TableCell>
+                  <TableCell className="border-r border-gray-100">
+                    <Badge 
+                      variant={entry.action === 'RECOMMENDED' ? 'default' : 'secondary'}
+                      className={`${entry.action === 'RECOMMENDED' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'} text-xs font-medium pointer-events-none`}
+                      style={{ fontSize: '9px' }}
+                    >
+                      {entry.action}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.rateRestriction}</TableCell>
+                  <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.rml}</TableCell>
+                  <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.groupType}</TableCell>
+                  <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.roomType}</TableCell>
+                  <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.systemReco}</TableCell>
+                  <TableCell style={{ fontSize: '10px' }}>{entry.previous || '-'}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
 
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious 
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                className={`${currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-[#FF732D] hover:text-white'}`}
-              />
-            </PaginationItem>
-            
-            {[...Array(Math.min(5, totalPages))].map((_, i) => {
-              const pageNum = i + 1;
-              return (
-                <PaginationItem key={pageNum}>
-                  <PaginationLink
-                    onClick={() => setCurrentPage(pageNum)}
-                    isActive={currentPage === pageNum}
-                    className={`cursor-pointer ${currentPage === pageNum ? 'bg-[#FF732D] text-white' : 'hover:bg-[#FF732D] hover:text-white'}`}
-                  >
-                    {pageNum}
-                  </PaginationLink>
-                </PaginationItem>
-              );
-            })}
-            
-            <PaginationItem>
-              <PaginationNext 
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                className={`${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-[#FF732D] hover:text-white'}`}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+        {/* Pagination */}
+        <div className="flex items-center justify-between bg-white px-4 py-3 rounded-lg shadow border border-gray-200">
+          <div className="flex items-center space-x-2">
+            <span className="text-xs text-gray-700">Show</span>
+            <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
+              <SelectTrigger className="w-16 h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-xs text-gray-700">entries</span>
+          </div>
+
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  className={`${currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-[#FF732D] hover:text-white'}`}
+                />
+              </PaginationItem>
+              
+              {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                const pageNum = i + 1;
+                return (
+                  <PaginationItem key={pageNum}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(pageNum)}
+                      isActive={currentPage === pageNum}
+                      className={`cursor-pointer ${currentPage === pageNum ? 'bg-[#FF732D] text-white' : 'hover:bg-[#FF732D] hover:text-white'}`}
+                    >
+                      {pageNum}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  className={`${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-[#FF732D] hover:text-white'}`}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 
