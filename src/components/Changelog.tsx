@@ -18,13 +18,12 @@ interface ChangelogEntry {
   createdBy: string;
   action: 'RECOMMENDED' | 'OVERRIDDEN';
   type: 'Rate' | 'Restriction';
-  ratesRestriction: string;
   rml: string;
   groupType: string;
   roomType: string;
   systemReco: string;
   previous: string | null;
-  currentRate?: string;
+  currentValue: string;
   description?: string;
 }
 
@@ -37,13 +36,12 @@ const mockData: ChangelogEntry[] = [
     createdBy: 'System',
     action: 'RECOMMENDED',
     type: 'Rate',
-    ratesRestriction: 'G6-450',
     rml: 'A',
     groupType: 'STD',
     roomType: 'STD01',
     systemReco: 'G6-450',
     previous: null,
-    currentRate: 'G6-450',
+    currentValue: 'G6-450',
     description: 'Rate update'
   },
   {
@@ -53,13 +51,12 @@ const mockData: ChangelogEntry[] = [
     createdBy: 'System',
     action: 'RECOMMENDED',
     type: 'Rate',
-    ratesRestriction: 'G6-450',
     rml: 'B',
     groupType: 'DLX',
     roomType: 'DLX02',
     systemReco: 'G6-450',
     previous: 'G5-400',
-    currentRate: 'G6-450',
+    currentValue: 'G6-450',
     description: 'Rate adjustment'
   },
   {
@@ -69,13 +66,12 @@ const mockData: ChangelogEntry[] = [
     createdBy: 'System',
     action: 'RECOMMENDED',
     type: 'Rate',
-    ratesRestriction: 'G1-200',
     rml: 'C',
     groupType: 'SU',
     roomType: 'SU03',
     systemReco: 'G1-200',
     previous: null,
-    currentRate: 'G1-200',
+    currentValue: 'G1-200',
     description: 'New rate'
   },
   // Restriction entries
@@ -86,51 +82,48 @@ const mockData: ChangelogEntry[] = [
     createdBy: 'System',
     action: 'OVERRIDDEN',
     type: 'Restriction',
-    ratesRestriction: 'CLOSED',
     rml: 'A',
     groupType: 'STD',
     roomType: 'STD01',
     systemReco: 'CLOSED',
     previous: 'OPEN',
+    currentValue: 'CLOSED',
     description: 'Restriction override'
   },
   {
     id: '5',
-    reservationDate: '2025-07-01',
-    createdDate: '2025-06-26 11:15:30',
+    reservationDate: '2025-06-27',
+    createdDate: '2025-06-26 11:15:22',
     createdBy: 'Admin',
     action: 'RECOMMENDED',
     type: 'Restriction',
-    ratesRestriction: 'CTA',
     rml: 'B',
     groupType: 'DLX',
-    roomType: 'DLX02',
+    roomType: 'DLX01',
     systemReco: 'CTA',
-    previous: 'OPEN',
-    description: 'Close to arrival restriction'
+    previous: null,
+    currentValue: 'CTA',
+    description: 'New restriction'
   },
   {
     id: '6',
-    reservationDate: '2025-07-15',
-    createdDate: '2025-06-26 14:22:45',
+    reservationDate: '2025-06-28',
+    createdDate: '2025-06-26 12:30:45',
     createdBy: 'System',
-    action: 'RECOMMENDED',
+    action: 'OVERRIDDEN',
     type: 'Restriction',
-    ratesRestriction: 'MINLOS 2',
     rml: 'C',
     groupType: 'SU',
-    roomType: 'SU03',
+    roomType: 'SU02',
     systemReco: 'MINLOS 2',
-    previous: null,
+    previous: 'OPEN',
+    currentValue: 'MINLOS 2',
     description: 'Minimum length of stay restriction'
   },
-  // Additional mock data with mixed rates and restrictions
+  // Additional mock data
   ...Array.from({ length: 150 }, (_, i) => {
     const isRate = Math.random() > 0.5;
-    const restrictionTypes = ['OPEN', 'CLOSED', 'CTA', 'MINLOS 2'];
-    const ratePrefix = `G${Math.floor(Math.random() * 6) + 1}`;
-    const rateValue = `${ratePrefix}-${Math.floor(Math.random() * 500) + 100}`;
-    const restrictionValue = restrictionTypes[Math.floor(Math.random() * restrictionTypes.length)];
+    const restrictionValues = ['OPEN', 'CLOSED', 'CTA', 'MINLOS 2'];
     
     return {
       id: `${i + 7}`,
@@ -139,7 +132,6 @@ const mockData: ChangelogEntry[] = [
       createdBy: ['System', 'John Doe', 'Jane Smith', 'Admin'][Math.floor(Math.random() * 4)],
       action: (Math.random() > 0.5 ? 'RECOMMENDED' : 'OVERRIDDEN') as 'RECOMMENDED' | 'OVERRIDDEN',
       type: (isRate ? 'Rate' : 'Restriction') as 'Rate' | 'Restriction',
-      ratesRestriction: isRate ? rateValue : restrictionValue,
       rml: ['A', 'B', 'C'][Math.floor(Math.random() * 3)],
       groupType: ['STD', 'DLX', 'SU'][Math.floor(Math.random() * 3)],
       roomType: (() => {
@@ -148,9 +140,17 @@ const mockData: ChangelogEntry[] = [
         const num = String(Math.floor(Math.random() * 3) + 1).padStart(2, '0');
         return `${type}${num}`;
       })(),
-      systemReco: isRate ? rateValue : restrictionValue,
-      previous: Math.random() > 0.3 ? (isRate ? `G${Math.floor(Math.random() * 6) + 1}-${Math.floor(Math.random() * 500) + 100}` : restrictionTypes[Math.floor(Math.random() * restrictionTypes.length)]) : null,
-      currentRate: isRate ? rateValue : undefined,
+      systemReco: isRate 
+        ? `G${Math.floor(Math.random() * 6) + 1}-${Math.floor(Math.random() * 500) + 100}`
+        : restrictionValues[Math.floor(Math.random() * restrictionValues.length)],
+      previous: Math.random() > 0.3 
+        ? (isRate 
+          ? `G${Math.floor(Math.random() * 6) + 1}-${Math.floor(Math.random() * 500) + 100}`
+          : restrictionValues[Math.floor(Math.random() * restrictionValues.length)])
+        : null,
+      currentValue: isRate 
+        ? `G${Math.floor(Math.random() * 6) + 1}-${Math.floor(Math.random() * 500) + 100}`
+        : restrictionValues[Math.floor(Math.random() * restrictionValues.length)],
       description: Math.random() > 0.7 ? ['Rate update', 'Price adjustment', 'System recommendation', 'Manual override'][Math.floor(Math.random() * 4)] : ''
     };
   })
@@ -365,15 +365,7 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
                 filterContent={<DropdownFilter options={actionOptions} placeholder="Select action" />}
               />
               
-              <FilterHeader
-                title="Rates & Restriction"
-                sortable
-                filterable
-                onSort={() => handleSort('ratesRestriction')}
-                sortDirection={sortConfig.key === 'ratesRestriction' ? sortConfig.direction : null}
-                className="text-gray-700 font-semibold border-r border-gray-200"
-                filterContent={<DropdownFilter options={[]} placeholder="Select rates/restriction" />}
-              />
+              <TableHead className="text-gray-700 font-semibold border-r border-gray-200" style={{ fontSize: '10px' }}>Rates & Restriction</TableHead>
               
               <FilterHeader
                 title="RML"
@@ -431,7 +423,7 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
                     {entry.action}
                   </Badge>
                 </TableCell>
-                <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.ratesRestriction}</TableCell>
+                <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.currentValue}</TableCell>
                 <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.rml}</TableCell>
                 <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.groupType}</TableCell>
                 <TableCell className="border-r border-gray-100" style={{ fontSize: '10px' }}>{entry.roomType}</TableCell>

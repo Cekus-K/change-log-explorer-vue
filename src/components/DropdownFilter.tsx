@@ -1,45 +1,30 @@
 
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 interface DropdownFilterProps {
   options: { value: string; label: string }[];
-  placeholder?: string;
-  onFilterApply?: () => void;
-  onValueChange?: (value: string) => void;
+  placeholder: string;
 }
 
-const DropdownFilter: React.FC<DropdownFilterProps> = ({
-  options,
-  placeholder = "Select option",
-  onFilterApply,
-  onValueChange
-}) => {
-  const handleValueChange = (value: string) => {
-    if (onValueChange) {
-      onValueChange(value);
-    }
-    // Auto-apply filter after selection
-    if (onFilterApply) {
-      setTimeout(() => {
-        onFilterApply();
-      }, 100);
-    }
-  };
-
+const DropdownFilter: React.FC<DropdownFilterProps> = ({ options, placeholder }) => {
   return (
-    <Select onValueChange={handleValueChange} defaultOpen>
-      <SelectTrigger className="sr-only">
-        <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
-      <SelectContent className="min-w-[180px]">
-        {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            {option.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="space-y-2">
+      <Select>
+        <SelectTrigger>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map(option => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button className="w-full" size="sm">Apply Filter</Button>
+    </div>
   );
 };
 
