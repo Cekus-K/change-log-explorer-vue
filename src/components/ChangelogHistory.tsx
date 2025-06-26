@@ -28,8 +28,12 @@ const ChangelogHistory = () => {
         );
       }
     } else {
-      // For Changelog History: alternating behavior
-      setActiveTab(tabValue);
+      // For Changelog History: alternating behavior - fix the tab values
+      if (tabValue === 'rates') {
+        setActiveTab('prices');
+      } else if (tabValue === 'restrictions') {
+        setActiveTab('restrictions');
+      }
     }
   };
 
