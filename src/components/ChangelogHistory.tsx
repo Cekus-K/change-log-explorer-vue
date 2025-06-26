@@ -40,14 +40,14 @@ const ChangelogHistory = () => {
           <div className="flex justify-between items-center px-6 py-4">
             <div className="flex h-14">
               <div
-                onClick={() => handleTabClick('prices')}
+                onClick={() => handleTabClick('rates')}
                 className={`h-14 px-8 rounded-none border-b-2 border-transparent cursor-pointer font-semibold text-sm transition-all duration-200 flex items-center ${
                   (!showChangelog && activeTab === 'prices') || (showChangelog && activeFilters.includes('rates'))
                     ? 'border-[#FF732D] bg-[#FF732D] text-white'
                     : 'bg-transparent text-gray-600 hover:text-[#FF732D] hover:bg-gray-100/50'
                 }`}
               >
-                {showChangelog ? 'RATES' : 'PRICES'}
+                RATES
               </div>
               <div
                 onClick={() => handleTabClick('restrictions')}
@@ -63,9 +63,10 @@ const ChangelogHistory = () => {
             
             <Button
               onClick={() => setShowChangelog(!showChangelog)}
-              className="bg-[#FF732D] hover:bg-[#FF732D]/90 text-white font-medium px-4 py-2 rounded"
+              variant="ghost"
+              className="text-[#FF732D] hover:text-[#FF732D]/90 hover:bg-[#FF732D]/10 font-medium px-4 py-2"
             >
-              {showChangelog ? 'Show Changelog History' : 'Show Changelog'}
+              {showChangelog ? 'Show History' : 'Show Changelog'}
             </Button>
           </div>
         </div>

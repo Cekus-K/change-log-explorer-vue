@@ -28,7 +28,7 @@ interface ChangelogEntry {
 }
 
 const mockData: ChangelogEntry[] = [
-  // Existing entries with corrected values
+  // Existing entries with corrected room type values
   {
     id: '1',
     reservationDate: '2025-06-30',
@@ -38,7 +38,7 @@ const mockData: ChangelogEntry[] = [
     type: 'Rate',
     rml: 'A',
     groupType: 'STD',
-    roomType: 'STD',
+    roomType: 'STD01',
     systemReco: 'G6-450',
     previous: null,
     currentRate: 'G6-450',
@@ -53,7 +53,7 @@ const mockData: ChangelogEntry[] = [
     type: 'Rate',
     rml: 'B',
     groupType: 'DLX',
-    roomType: 'DLX',
+    roomType: 'DLX02',
     systemReco: 'G6-450',
     previous: 'G5-400',
     currentRate: 'G6-450',
@@ -68,7 +68,7 @@ const mockData: ChangelogEntry[] = [
     type: 'Rate',
     rml: 'C',
     groupType: 'SU',
-    roomType: 'SU',
+    roomType: 'SU03',
     systemReco: 'G1-200',
     previous: null,
     currentRate: 'G1-200',
@@ -83,13 +83,13 @@ const mockData: ChangelogEntry[] = [
     type: 'Restriction',
     rml: 'A',
     groupType: 'STD',
-    roomType: 'STD',
+    roomType: 'STD01',
     systemReco: 'G3-293',
     previous: 'G2-250',
     currentRate: 'G3-293',
     description: 'Restriction override'
   },
-  // Additional mock data with corrected types
+  // Additional mock data with corrected room types
   ...Array.from({ length: 150 }, (_, i) => ({
     id: `${i + 5}`,
     reservationDate: `2025-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
@@ -99,7 +99,12 @@ const mockData: ChangelogEntry[] = [
     type: (Math.random() > 0.5 ? 'Rate' : 'Restriction') as 'Rate' | 'Restriction',
     rml: ['A', 'B', 'C'][Math.floor(Math.random() * 3)],
     groupType: ['STD', 'DLX', 'SU'][Math.floor(Math.random() * 3)],
-    roomType: ['STD', 'DLX', 'SU', 'PREM'][Math.floor(Math.random() * 4)],
+    roomType: (() => {
+      const types = ['STD', 'DLX', 'SU', 'PREM'];
+      const type = types[Math.floor(Math.random() * types.length)];
+      const num = String(Math.floor(Math.random() * 3) + 1).padStart(2, '0');
+      return `${type}${num}`;
+    })(),
     systemReco: `G${Math.floor(Math.random() * 6) + 1}-${Math.floor(Math.random() * 500) + 100}`,
     previous: Math.random() > 0.3 ? `G${Math.floor(Math.random() * 6) + 1}-${Math.floor(Math.random() * 500) + 100}` : null,
     currentRate: `G${Math.floor(Math.random() * 6) + 1}-${Math.floor(Math.random() * 500) + 100}`,
@@ -398,9 +403,6 @@ const Changelog: React.FC<ChangelogProps> = ({ activeFilters }) => {
             </SelectContent>
           </Select>
           <span className="text-xs text-gray-700">entries</span>
-          <span className="text-xs text-gray-500 ml-4">
-            Total records {sortedData.length}
-          </span>
         </div>
 
         <Pagination>
